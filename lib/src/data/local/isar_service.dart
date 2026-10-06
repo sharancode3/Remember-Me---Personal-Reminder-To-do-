@@ -2,10 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 
-import '../models/advanced_models.dart';
-import '../models/journey_record_model.dart';
-import '../models/routine_template_model.dart';
+import '../models/focus_session_model.dart';
 import '../models/task_model.dart';
+import '../models/task_occurrence_model.dart';
 
 class IsarService {
   IsarService._(this.isar);
@@ -23,18 +22,8 @@ class IsarService {
     final isar = await Isar.open(
       [
         TaskModelSchema,
-        JourneyRecordSchema,
-        RoutineTemplateModelSchema,
-        TaskTemplateModelSchema,
-        TaskInstanceModelSchema,
-        ChecklistItemSchema,
-        CategoryModelSchema,
-        WeeklySummaryCacheSchema,
         FocusSessionModelSchema,
-        AppSettingsModelSchema,
-        TaskDraftModelSchema,
-        BlueprintProfileModelSchema,
-        FixedActivityBlockModelSchema,
+        TaskOccurrenceSchema,
       ],
       directory: directory,
       name: 'remember_me_db',

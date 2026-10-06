@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../services/daily_trail_service.dart';
-import 'neo_colors.dart';
 
 enum DailyStyle { mint, ocean, rose }
 
@@ -55,7 +54,6 @@ class DailyTheme {
       useMaterial3: true,
       colorScheme: scheme,
       scaffoldBackgroundColor: canvas,
-      extensions: const [NeoColors.light],
       appBarTheme: AppBarTheme(
         backgroundColor: canvas.withValues(alpha: .85),
         elevation: 0,

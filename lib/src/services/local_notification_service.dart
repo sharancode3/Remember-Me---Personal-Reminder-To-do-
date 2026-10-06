@@ -247,7 +247,7 @@ class LocalNotificationService {
       task.title,
       'Starts at ${_label(task.startAt)}',
       tz.TZDateTime.from(triggerAt, tz.UTC),
-      NotificationDetails(
+      const NotificationDetails(
         android: AndroidNotificationDetails(
           'remember_me_daily_reminders',
           'Reminders',
@@ -255,7 +255,7 @@ class LocalNotificationService {
           importance: Importance.high,
           priority: Priority.high,
           category: AndroidNotificationCategory.reminder,
-          actions: const [
+          actions: [
             AndroidNotificationAction(
               'mark_done',
               'Mark Done',
@@ -270,7 +270,7 @@ class LocalNotificationService {
             ),
           ],
         ),
-        iOS: const DarwinNotificationDetails(),
+        iOS: DarwinNotificationDetails(),
       ),
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
@@ -290,7 +290,7 @@ class LocalNotificationService {
       task.title,
       'Snoozed for $minutes minutes',
       tz.TZDateTime.from(time, tz.UTC),
-      NotificationDetails(
+      const NotificationDetails(
         android: AndroidNotificationDetails(
           'remember_me_daily_reminders',
           'Reminders',
@@ -298,7 +298,7 @@ class LocalNotificationService {
           importance: Importance.high,
           priority: Priority.high,
           category: AndroidNotificationCategory.reminder,
-          actions: const [
+          actions: [
             AndroidNotificationAction(
               'mark_done',
               'Mark Done',
@@ -313,7 +313,7 @@ class LocalNotificationService {
             ),
           ],
         ),
-        iOS: const DarwinNotificationDetails(),
+        iOS: DarwinNotificationDetails(),
       ),
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
@@ -347,15 +347,15 @@ class LocalNotificationService {
       'Daily summary',
       body,
       tz.TZDateTime.from(next, tz.local),
-      NotificationDetails(
-        android: const AndroidNotificationDetails(
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
           'remember_me_summary',
           'Daily Summary',
           channelDescription: 'Daily productivity summaries',
           importance: Importance.defaultImportance,
           priority: Priority.defaultPriority,
         ),
-        iOS: const DarwinNotificationDetails(),
+        iOS: DarwinNotificationDetails(),
       ),
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
@@ -375,15 +375,15 @@ class LocalNotificationService {
       task.id + 800000,
       'Task still pending',
       "Task '${task.title}' is still pending.",
-      NotificationDetails(
-        android: const AndroidNotificationDetails(
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
           'remember_me_overdue',
           'Overdue Nudges',
           channelDescription: 'Gentle nudges for overdue tasks',
           importance: Importance.defaultImportance,
           priority: Priority.defaultPriority,
         ),
-        iOS: const DarwinNotificationDetails(),
+        iOS: DarwinNotificationDetails(),
       ),
     );
   }

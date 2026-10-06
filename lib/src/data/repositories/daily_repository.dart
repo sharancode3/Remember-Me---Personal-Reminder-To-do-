@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:isar/isar.dart';
 import '../local/isar_service.dart';
 import '../models/task_model.dart';
-import '../models/advanced_models.dart';
+import '../models/focus_session_model.dart';
 import '../../services/local_notification_service.dart';
 import '../../services/reminder_recurrence.dart';
 

@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 /// Centralized API & Environment Configuration for Remember Me
 /// Uses compile-time `const String.fromEnvironment` for safe, production-grade key injection.
 /// Zero secrets are committed to version control.

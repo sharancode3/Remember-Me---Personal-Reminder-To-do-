@@ -142,7 +142,7 @@ class _DailyHomeScreenState extends ConsumerState<DailyHomeScreen>
             ? 3
             : 0,
       );
-      if (tab == 'add') showDailyEditor(context, ref);
+      if (tab == 'add') unawaited(showDailyEditor(context, ref));
     } catch (_) {
       /* Widget navigation is optional on other hosts. */
     }
@@ -806,7 +806,7 @@ class _TaskRow extends ConsumerWidget {
             icon: const Icon(Icons.more_horiz, size: 20),
             onSelected: (value) async {
               if (value == 'edit') {
-                showDailyEditor(context, ref, task: task);
+                unawaited(showDailyEditor(context, ref, task: task));
                 return;
               }
               try {
