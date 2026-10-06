@@ -19,6 +19,8 @@ class TrailFix {
   final double accuracy;
   final double speed;
   final bool gap;
+  double get lat => point.latitude;
+  double get lng => point.longitude;
   Map<String, dynamic> toJson() => {
     'lat': point.latitude,
     'lng': point.longitude,
@@ -29,7 +31,9 @@ class TrailFix {
   };
   factory TrailFix.fromJson(Map<String, dynamic> json) => TrailFix(
     LatLng((json['lat'] as num).toDouble(), (json['lng'] as num).toDouble()),
-    DateTime.fromMillisecondsSinceEpoch((json['time'] as num).toInt()),
+    json['time'] is num
+        ? DateTime.fromMillisecondsSinceEpoch((json['time'] as num).toInt())
+        : DateTime.parse(json['time'] as String),
     (json['accuracy'] as num).toDouble(),
     speed: (json['speed'] as num?)?.toDouble() ?? 0,
     gap: json['gap'] == true,
@@ -61,8 +65,12 @@ class TrailGap {
   };
 
   factory TrailGap.fromJson(Map<String, dynamic> json) => TrailGap(
-    start: DateTime.fromMillisecondsSinceEpoch((json['start'] as num).toInt()),
-    end: DateTime.fromMillisecondsSinceEpoch((json['end'] as num).toInt()),
+    start: json['start'] is num
+        ? DateTime.fromMillisecondsSinceEpoch((json['start'] as num).toInt())
+        : DateTime.parse(json['start'] as String),
+    end: json['end'] is num
+        ? DateTime.fromMillisecondsSinceEpoch((json['end'] as num).toInt())
+        : DateTime.parse(json['end'] as String),
     reason: json['reason'] as String? ?? 'tunnel_or_loss',
   );
 }
@@ -104,6 +112,54 @@ class SavedPlace {
     message: data['message'] as String? ?? '',
     dwellSeconds: (data['dwellSeconds'] as num?)?.toInt() ?? 90,
   );
+}
+
+class ParsedTrailPayload {
+  const ParsedTrailPayload({required this.fixes, required this.gaps});
+  final List<TrailFix> fixes;
+  final List<TrailGap> gaps;
+}
+
+/// Runs off the main UI thread via [compute] to parse and link large trail datasets without frame drops.
+ParsedTrailPayload parseAndProcessTrail(String jsonString) {
+  if (jsonString.isEmpty || jsonString == '[]') {
+    return const ParsedTrailPayload(fixes: [], gaps: []);
+  }
+
+  final rawList = jsonDecode(jsonString) as List;
+  final parsedFixes = <TrailFix>[];
+  final parsedGaps = <TrailGap>[];
+
+  for (final item in rawList) {
+    if (item is! Map) continue;
+    final map = Map<String, dynamic>.from(item);
+    if (map['type'] == 'gap' ||
+        (map.containsKey('start') && map.containsKey('end'))) {
+      parsedGaps.add(TrailGap.fromJson(map));
+    } else if (map.containsKey('lat') && map.containsKey('lng')) {
+      parsedFixes.add(TrailFix.fromJson(map));
+    }
+  }
+
+  // Link gaps to adjacent points
+  final linkedGaps = <TrailGap>[];
+  for (final gap in parsedGaps) {
+    final from = parsedFixes
+        .where((f) => f.time.isBefore(gap.start) || f.time == gap.start)
+        .lastOrNull;
+    final to = parsedFixes
+        .where((f) => f.time.isAfter(gap.end) || f.time == gap.end)
+        .firstOrNull;
+    linkedGaps.add(TrailGap(
+      start: gap.start,
+      end: gap.end,
+      reason: gap.reason,
+      fromPoint: from?.point,
+      toPoint: to?.point,
+    ));
+  }
+
+  return ParsedTrailPayload(fixes: parsedFixes, gaps: linkedGaps);
 }
 
 class TrailStats {
@@ -255,36 +311,9 @@ class DailyTrailService extends ChangeNotifier {
           'day':
               '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
         });
-        if (date != selectedDay) return;
-        final rawList = jsonDecode(data ?? '[]') as List;
-        final parsedFixes = <TrailFix>[];
-        final parsedGaps = <TrailGap>[];
-
-        for (final item in rawList) {
-          final map = Map<String, dynamic>.from(item as Map);
-          if (map['type'] == 'gap' || (map.containsKey('start') && map.containsKey('end'))) {
-            parsedGaps.add(TrailGap.fromJson(map));
-          } else if (map.containsKey('lat') && map.containsKey('lng')) {
-            parsedFixes.add(TrailFix.fromJson(map));
-          }
-        }
-
-        // Link gaps to adjacent points
-        final linkedGaps = <TrailGap>[];
-        for (final gap in parsedGaps) {
-          final from = parsedFixes.where((f) => f.time.isBefore(gap.start) || f.time == gap.start).lastOrNull;
-          final to = parsedFixes.where((f) => f.time.isAfter(gap.end) || f.time == gap.end).firstOrNull;
-          linkedGaps.add(TrailGap(
-            start: gap.start,
-            end: gap.end,
-            reason: gap.reason,
-            fromPoint: from?.point,
-            toPoint: to?.point,
-          ));
-        }
-
-        fixes = parsedFixes;
-        gaps = linkedGaps;
+        final payload = await compute(parseAndProcessTrail, data ?? '[]');
+        fixes = payload.fixes;
+        gaps = payload.gaps;
         final status = await channel.invokeMapMethod<String, dynamic>(
           'trackingStatus',
         );
