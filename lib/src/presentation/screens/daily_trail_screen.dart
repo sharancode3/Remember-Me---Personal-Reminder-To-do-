@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import '../../core/theme/daily_theme.dart';
 import '../../services/daily_trail_service.dart';
+import '../../services/tile_cache_manager.dart';
 import '../providers/providers.dart';
 import 'daily_home_screen.dart';
 
@@ -33,6 +35,13 @@ class _DailyTrailScreenState extends ConsumerState<DailyTrailScreen> {
     'day': trail.selectedDay.toIso8601String(),
     'points': trail.fixes.map((p) => p.toJson()).toList(),
     'places': trail.places.map((p) => p.toJson()).toList(),
+    'gaps': trail.gaps.map((g) => {
+      'start': g.start.millisecondsSinceEpoch,
+      'end': g.end.millisecondsSinceEpoch,
+      'reason': g.reason,
+      if (g.fromPoint != null) 'from': {'lat': g.fromPoint!.latitude, 'lng': g.fromPoint!.longitude},
+      if (g.toPoint != null) 'to': {'lat': g.toPoint!.latitude, 'lng': g.toPoint!.longitude},
+    }).toList(),
     'satellite': _satellite,
   };
   void _fit() {
@@ -906,10 +915,11 @@ class _DailyTrailScreenState extends ConsumerState<DailyTrailScreen> {
                         child: Text(
                           _google
                               ? 'Google Maps'
-                              : 'Map data: OpenStreetMap contributors',
+                              : '© OpenStreetMap contributors · OpenFreeMap',
                           style: const TextStyle(
                             fontSize: 10,
                             color: Color(0xFF68756E),
+                            decoration: TextDecoration.underline,
                           ),
                         ),
                       ),
@@ -987,13 +997,42 @@ class _TileClient extends http.BaseClient {
   final _client = http.Client();
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    final cached = await TileCacheManager.instance.getCachedTile(request.url);
+    if (cached != null) {
+      return http.StreamedResponse(
+        Stream.value(cached),
+        200,
+        contentLength: cached.length,
+        headers: const {'content-type': 'image/png'},
+      );
+    }
+
     try {
       final response = await _client
           .send(request)
           .timeout(const Duration(seconds: 12));
+      if (response.statusCode == 200) {
+        final bytes = await response.stream.toBytes();
+        unawaited(TileCacheManager.instance.putCachedTile(request.url, bytes));
+        return http.StreamedResponse(
+          Stream.value(bytes),
+          200,
+          contentLength: bytes.length,
+          headers: response.headers,
+        );
+      }
       if (response.statusCode >= 400) onFailure();
       return response;
     } catch (_) {
+      final fallback = await TileCacheManager.instance.getCachedTile(request.url);
+      if (fallback != null) {
+        return http.StreamedResponse(
+          Stream.value(fallback),
+          200,
+          contentLength: fallback.length,
+          headers: const {'content-type': 'image/png'},
+        );
+      }
       onFailure();
       rethrow;
     }

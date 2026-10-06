@@ -80,6 +80,25 @@ class GoogleTrailMap(context: Context, messenger: BinaryMessenger, id: Int, init
             segment.add(LatLng((fix["lat"] as Number).toDouble(), (fix["lng"] as Number).toDouble())); lastTime = time
         }
         if (segment.size > 1) google.addPolyline(PolylineOptions().addAll(segment).color(Color.rgb(22, 119, 94)).width(9f))
+
+        val rawGaps = data["gaps"] as? List<*> ?: emptyList<Any>()
+        for (value in rawGaps) {
+            val gap = value as? Map<*, *> ?: continue
+            val from = gap["from"] as? Map<*, *>
+            val to = gap["to"] as? Map<*, *>
+            if (from != null && to != null) {
+                val p1 = LatLng((from["lat"] as Number).toDouble(), (from["lng"] as Number).toDouble())
+                val p2 = LatLng((to["lat"] as Number).toDouble(), (to["lng"] as Number).toDouble())
+                google.addPolyline(
+                    PolylineOptions()
+                        .add(p1, p2)
+                        .color(Color.DKGRAY)
+                        .width(6f)
+                        .pattern(listOf(Dash(20f), Gap(15f)))
+                )
+            }
+        }
+
         val points = points()
         if (points.isNotEmpty()) {
             google.addMarker(MarkerOptions().position(points.first()).title("Start").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)))
