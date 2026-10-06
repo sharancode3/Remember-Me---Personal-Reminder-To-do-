@@ -36,6 +36,37 @@ class TrailFix {
   );
 }
 
+class TrailGap {
+  const TrailGap({
+    required this.start,
+    required this.end,
+    this.reason = 'tunnel_or_loss',
+    this.fromPoint,
+    this.toPoint,
+  });
+
+  final DateTime start;
+  final DateTime end;
+  final String reason;
+  final LatLng? fromPoint;
+  final LatLng? toPoint;
+
+  Duration get duration => end.difference(start);
+
+  Map<String, dynamic> toJson() => {
+    'type': 'gap',
+    'start': start.millisecondsSinceEpoch,
+    'end': end.millisecondsSinceEpoch,
+    'reason': reason,
+  };
+
+  factory TrailGap.fromJson(Map<String, dynamic> json) => TrailGap(
+    start: DateTime.fromMillisecondsSinceEpoch((json['start'] as num).toInt()),
+    end: DateTime.fromMillisecondsSinceEpoch((json['end'] as num).toInt()),
+    reason: json['reason'] as String? ?? 'tunnel_or_loss',
+  );
+}
+
 class SavedPlace {
   const SavedPlace({
     required this.id,
@@ -114,6 +145,7 @@ class DailyTrailService extends ChangeNotifier {
   }
 
   List<TrailFix> fixes = [];
+  List<TrailGap> gaps = [];
   DateTime selectedDay = dayOnly(DateTime.now());
 
   Future<void> initialize() async {
@@ -220,9 +252,35 @@ class DailyTrailService extends ChangeNotifier {
               '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
         });
         if (date != selectedDay) return;
-        fixes = (jsonDecode(data ?? '[]') as List)
-            .map((e) => TrailFix.fromJson(Map<String, dynamic>.from(e as Map)))
-            .toList();
+        final rawList = jsonDecode(data ?? '[]') as List;
+        final parsedFixes = <TrailFix>[];
+        final parsedGaps = <TrailGap>[];
+
+        for (final item in rawList) {
+          final map = Map<String, dynamic>.from(item as Map);
+          if (map['type'] == 'gap' || (map.containsKey('start') && map.containsKey('end'))) {
+            parsedGaps.add(TrailGap.fromJson(map));
+          } else if (map.containsKey('lat') && map.containsKey('lng')) {
+            parsedFixes.add(TrailFix.fromJson(map));
+          }
+        }
+
+        // Link gaps to adjacent points
+        final linkedGaps = <TrailGap>[];
+        for (final gap in parsedGaps) {
+          final from = parsedFixes.where((f) => f.time.isBefore(gap.start) || f.time == gap.start).lastOrNull;
+          final to = parsedFixes.where((f) => f.time.isAfter(gap.end) || f.time == gap.end).firstOrNull;
+          linkedGaps.add(TrailGap(
+            start: gap.start,
+            end: gap.end,
+            reason: gap.reason,
+            fromPoint: from?.point,
+            toPoint: to?.point,
+          ));
+        }
+
+        fixes = parsedFixes;
+        gaps = linkedGaps;
         final status = await channel.invokeMapMethod<String, dynamic>(
           'trackingStatus',
         );
@@ -232,6 +290,7 @@ class DailyTrailService extends ChangeNotifier {
       }
     } else {
       fixes = _sessionFixes.where((p) => dayOnly(p.time) == date).toList();
+      gaps = [];
     }
     if (!_disposed) notifyListeners();
   }

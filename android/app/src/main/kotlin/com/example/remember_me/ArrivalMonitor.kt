@@ -34,7 +34,7 @@ class ArrivalMonitor(private val context: Context) {
             if (location.time - prefs.getLong(key, 0) < 30 * 60000) { inside.add(id); continue }
             inside.add(id); prefs.edit().putLong(key, location.time).apply()
             val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            if (Build.VERSION.SDK_INT >= 26) manager.createNotificationChannel(NotificationChannel("place_arrivals", "Arrival reminders", NotificationManager.IMPORTANCE_HIGH))
+            @Suppress("DEPRECATION")
             val builder = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(context, "place_arrivals") else Notification.Builder(context)
             val launch = PendingIntent.getActivity(context, id.hashCode(), Intent(context, MainActivity::class.java).putExtra("dailyTab", "trail"), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             manager.notify(id.hashCode(), builder.setSmallIcon(R.drawable.ic_stat_remember).setContentTitle("You reached ${place.getString("name")}")

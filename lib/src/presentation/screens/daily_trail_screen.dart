@@ -548,10 +548,41 @@ class _DailyTrailScreenState extends ConsumerState<DailyTrailScreen> {
     for (var i = 0; i < fixes.length; i++) {
       if (i == 0 ||
           fixes[i].gap ||
-          fixes[i].time.difference(fixes[i - 1].time).inSeconds > 120) {
+          fixes[i].time.difference(fixes[i - 1].time).inSeconds > 60) {
         segments.add([]);
       }
       segments.last.add(fixes[i].point);
+    }
+    final gapPolylines = <Polyline>[];
+    for (var i = 1; i < segments.length; i++) {
+      if (segments[i - 1].isNotEmpty && segments[i].isNotEmpty) {
+        gapPolylines.add(
+          Polyline(
+            points: [segments[i - 1].last, segments[i].first],
+            pattern: StrokePattern.dashed(segments: const [6, 6]),
+            color: Colors.grey.shade600,
+            strokeWidth: 2.5,
+          ),
+        );
+      }
+    }
+    for (final gap in trail.gaps) {
+      if (gap.fromPoint != null && gap.toPoint != null) {
+        final alreadyPresent = gapPolylines.any((p) =>
+            p.points.length == 2 &&
+            p.points.first == gap.fromPoint &&
+            p.points.last == gap.toPoint);
+        if (!alreadyPresent) {
+          gapPolylines.add(
+            Polyline(
+              points: [gap.fromPoint!, gap.toPoint!],
+              pattern: StrokePattern.dashed(segments: const [6, 6]),
+              color: Colors.grey.shade600,
+              strokeWidth: 2.5,
+            ),
+          );
+        }
+      }
     }
     return RepaintBoundary(
       key: _mapImage,
@@ -608,16 +639,18 @@ class _DailyTrailScreenState extends ConsumerState<DailyTrailScreen> {
                         },
                       ),
                       PolylineLayer(
-                        polylines: segments
-                            .where((s) => s.length > 1)
-                            .map(
-                              (points) => Polyline(
-                                points: points,
-                                color: Theme.of(context).colorScheme.primary,
-                                strokeWidth: 4,
+                        polylines: [
+                          ...gapPolylines,
+                          ...segments
+                              .where((s) => s.length > 1)
+                              .map(
+                                (points) => Polyline(
+                                  points: points,
+                                  color: Theme.of(context).colorScheme.primary,
+                                  strokeWidth: 4,
+                                ),
                               ),
-                            )
-                            .toList(),
+                        ],
                       ),
                       MarkerLayer(
                         markers: [
@@ -653,6 +686,40 @@ class _DailyTrailScreenState extends ConsumerState<DailyTrailScreen> {
                               ),
                             ),
                           ),
+                          ...trail.gaps.where((g) => g.fromPoint != null && g.toPoint != null).map((g) {
+                            final midLat = (g.fromPoint!.latitude + g.toPoint!.latitude) / 2;
+                            final midLng = (g.fromPoint!.longitude + g.toPoint!.longitude) / 2;
+                            final dist = const Distance().as(LengthUnit.Meter, g.fromPoint!, g.toPoint!);
+                            final mins = g.duration.inMinutes;
+                            final label = mins > 0
+                                ? '${mins}m gap · ${(dist / 1000).toStringAsFixed(1)}km'
+                                : '${(dist / 1000).toStringAsFixed(1)}km gap';
+                            return Marker(
+                              point: LatLng(midLat, midLng),
+                              width: 140,
+                              height: 28,
+                              child: Center(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.65),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.swap_horiz, size: 14, color: Colors.white70),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        label,
+                                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
                         ],
                       ),
                     ],

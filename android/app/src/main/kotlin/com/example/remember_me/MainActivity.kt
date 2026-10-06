@@ -156,22 +156,22 @@ class MainActivity : FlutterActivity() {
                         "startTracking" -> {
                             val intent = Intent(this, DailyTrailService::class.java)
                             if (Build.VERSION.SDK_INT >= 26) startForegroundService(intent) else startService(intent)
-                            preferences.edit().putBoolean("tracking", true).apply()
+                            preferences.edit().putBoolean("tracking", true).putLong("trail_heartbeat", System.currentTimeMillis()).apply()
+                            DailyTrailWatchdogReceiver.schedule(this)
                             result.success(null)
                         }
                         "stopTracking" -> {
                             preferences.edit().putBoolean("tracking", false).apply()
+                            DailyTrailWatchdogReceiver.cancel(this)
                             stopService(Intent(this, DailyTrailService::class.java))
                             result.success(null)
                         }
                         "trackingStatus" -> result.success(mapOf("error" to preferences.getString("trackingError", null)))
                         "readTrail" -> {
                             val file = trailFile(call.argument<String>("day"))
-                            val array = JSONArray()
-                            if (file.exists()) file.forEachLine { line ->
-                                try { array.put(JSONObject(line)) } catch (_: Exception) { /* Ignore a partially written final fix. */ }
-                            }
-                            result.success(array.toString())
+                            val lines = if (file.exists()) file.readLines() else emptyList()
+                            val decimated = TrailDecimator.decimateTrail(lines, epsilon = 5.0, maxPoints = 2000)
+                            result.success(decimated.toString())
                         }
                         "deleteTrail" -> {
                             val file = trailFile(call.argument<String>("day"))
