@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../services/daily_trail_service.dart';
+import '../providers/providers.dart';
 import 'daily_home_screen.dart';
 
 class DailyFocusScreen extends ConsumerStatefulWidget {

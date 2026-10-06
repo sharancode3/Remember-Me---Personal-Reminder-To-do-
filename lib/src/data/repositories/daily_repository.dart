@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:isar/isar.dart';
 import '../local/isar_service.dart';
 import '../models/task_model.dart';
@@ -11,6 +9,7 @@ import '../../core/notifications/reminder_scheduler.dart';
 import '../../services/reminder_recurrence.dart';
 import '../../services/local_notification_service.dart';
 import '../../core/logging/app_logger.dart';
+import '../../core/platform/native_daily_bridge.dart';
 
 DateTime dayOnly(DateTime day) => DateTime(day.year, day.month, day.day);
 
@@ -30,11 +29,13 @@ class DailyRepository {
     this.database,
     this.scheduler, [
     this.notifications,
-  ]);
+    NativeDailyBridge? bridge,
+  ]) : bridge = bridge ?? NativeDailyBridge.instance;
 
   final IsarService? database;
   final ReminderScheduler scheduler;
   final LocalNotificationService? notifications;
+  final NativeDailyBridge bridge;
 
   static final _logger = AppLogger.create('DailyRepository');
 
@@ -831,10 +832,7 @@ class DailyRepository {
         }
       }
       if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-        await const MethodChannel('remember_me/daily').invokeMethod<void>(
-          'syncTasksByPlace',
-          {'tasksByPlace': jsonEncode(map)},
-        );
+        await bridge.syncTasksByPlace(map);
       }
     } catch (e, st) {
       _logger.warning('Failed to sync tasks by place', e, st);
