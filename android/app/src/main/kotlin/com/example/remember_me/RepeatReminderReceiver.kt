@@ -3,7 +3,6 @@ package com.example.remember_me
 import android.Manifest
 import android.app.AlarmManager
 import android.app.Notification
-import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
@@ -11,74 +10,312 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import androidx.core.app.NotificationCompat
+import org.json.JSONArray
 import org.json.JSONObject
 
-/** One rolling alarm per series, independent of Flutter and safe across reboots. */
-object RepeatReminders {
-    private fun prefs(context: Context) = context.getSharedPreferences("daily", Context.MODE_PRIVATE)
-    private fun rules(context: Context) = JSONObject(prefs(context).getString("repeatRules", "{}") ?: "{}")
-    private fun notificationId(id: Int) = 0x40000000 + id
-    private fun alarm(context: Context, id: Int, time: Long = 0L): PendingIntent = PendingIntent.getBroadcast(context, id,
-        Intent(context, RepeatReminderReceiver::class.java).setAction("remember_me.REPEAT").putExtra("task", id).putExtra("time", time), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-    fun save(context: Context, id: Int, title: String, anchor: Long, rule: String) {
-        val all = rules(context)
-        val old = all.optJSONObject(id.toString())
-        val data = JSONObject(rule).put("title", title).put("anchor", anchor).put("skipped", old?.optJSONArray("skipped") ?: org.json.JSONArray())
-        all.put(id.toString(), data); prefs(context).edit().putString("repeatRules", all.toString()).apply()
-        schedule(context, id, data)
-    }
-    fun cancel(context: Context, id: Int) {
-        (context.getSystemService(Context.ALARM_SERVICE) as AlarmManager).cancel(alarm(context, id))
-        (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).cancel(notificationId(id))
-        val all = rules(context); all.remove(id.toString()); prefs(context).edit().putString("repeatRules", all.toString()).apply()
-    }
-    fun skip(context: Context, id: Int, day: String, value: Boolean) {
-        val all = rules(context); val data = all.optJSONObject(id.toString()) ?: return
-        val dates = data.optJSONArray("skipped") ?: org.json.JSONArray()
-        val kept = (0 until dates.length()).map { dates.getString(it) }.toMutableSet()
-        if(value) kept.add(day) else kept.remove(day)
-        data.put("skipped", org.json.JSONArray(kept.toList())); all.put(id.toString(), data)
-        prefs(context).edit().putString("repeatRules", all.toString()).apply()
-        if (value) (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).cancel(notificationId(id))
-        schedule(context, id, data)
-    }
-    private fun schedule(context: Context, id: Int, data: JSONObject) {
-        val manager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val array = data.getJSONArray("days"); val days = (0 until array.length()).map { array.getInt(it) }.toSet()
-        val skip = data.optJSONArray("skipped") ?: org.json.JSONArray(); val skipped = (0 until skip.length()).map { skip.getString(it) }.toSet()
-        val next = RepeatClock.next(System.currentTimeMillis(), data.getLong("anchor"), data.getString("kind"), days, skipped)
-        manager.cancel(alarm(context,id))
-        if(next == null) return
-        val pending = alarm(context,id,next)
-        if(Build.VERSION.SDK_INT < 31 || manager.canScheduleExactAlarms()) {
-            try { manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, next, pending); return } catch (_: SecurityException) { }
+/**
+ * Single Unified Native Alarm Receiver for Remember Me.
+ * Schedules and dispatches alarms with sound, vibration, action buttons,
+ * and handles system restore events.
+ */
+object UnifiedAlarmScheduler {
+    private const val PREFS_NAME = "unified_reminders"
+    private const val KEY_SCHEDULED = "scheduled_occurrences"
+
+    private fun prefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    fun schedule(
+        context: Context,
+        occurrenceId: Long,
+        title: String,
+        triggerAtMillis: Long,
+        isAlarmStyle: Boolean = false,
+        nagMinutes: Int = 0,
+        nagMax: Int = 0,
+        nagCount: Int = 0
+    ) {
+        val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(context, RepeatReminderReceiver::class.java).apply {
+            setAction("remember_me.ALARM_TRIGGER")
+            putExtra("occurrenceId", occurrenceId)
+            putExtra("title", title)
+            putExtra("isAlarmStyle", isAlarmStyle)
+            putExtra("nagMinutes", nagMinutes)
+            putExtra("nagMax", nagMax)
+            putExtra("nagCount", nagCount)
+            putExtra("triggerTime", triggerAtMillis)
         }
-        manager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, next, pending)
-    }
-    fun restore(context: Context) { val all=rules(context); for(key in all.keys()) schedule(context,key.toInt(),all.getJSONObject(key)) }
-    fun fire(context: Context, id: Int, time: Long) {
-        val data = rules(context).optJSONObject(id.toString()) ?: return
-        val day = RepeatClock.day(time)
-        val skipped = data.optJSONArray("skipped") ?: org.json.JSONArray()
-        val suppress = (0 until skipped.length()).any { skipped.getString(it) == day }
-        if(!suppress && (Build.VERSION.SDK_INT < 33 || context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)) {
-            val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            if(Build.VERSION.SDK_INT >= 26) manager.createNotificationChannel(NotificationChannel("remember_me_daily_reminders","Reminders",NotificationManager.IMPORTANCE_HIGH))
-            fun intent(action: String, request: Int): PendingIntent = PendingIntent.getActivity(context, request,
-                Intent(context,MainActivity::class.java).setAction("remember_me.$action.$id").putExtra("repeatTask",id).putExtra("repeatAction",action).putExtra("repeatDate",day), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-            val builder = if(Build.VERSION.SDK_INT >= 26) Notification.Builder(context,"remember_me_daily_reminders") else Notification.Builder(context)
-            manager.notify(notificationId(id),builder.setSmallIcon(R.drawable.ic_stat_remember).setContentTitle(data.getString("title"))
-                .setContentText("Your scheduled reminder").setCategory(Notification.CATEGORY_REMINDER).setPriority(Notification.PRIORITY_HIGH)
-                .setContentIntent(intent("open",id*4)).setAutoCancel(true)
-                .addAction(Notification.Action.Builder(null,"Done",intent("mark_done",id*4+1)).build())
-                .addAction(Notification.Action.Builder(null,"Snooze 10m",intent("snooze_10",id*4+2)).build()).build())
+
+        val pending = PendingIntent.getBroadcast(
+            context,
+            occurrenceId.toInt(),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        try {
+            if (isAlarmStyle) {
+                // Use setAlarmClock for guaranteed waking and system lockscreen status
+                val showIntent = Intent(context, MainActivity::class.java).apply {
+                    putExtra("occurrenceId", occurrenceId)
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                }
+                val showPending = PendingIntent.getActivity(
+                    context,
+                    occurrenceId.toInt(),
+                    showIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                val alarmClockInfo = AlarmManager.AlarmClockInfo(triggerAtMillis, showPending)
+                am.setAlarmClock(alarmClockInfo, pending)
+                AppLogger.i("UnifiedAlarmScheduler", "Scheduled AlarmClock for occurrence $occurrenceId at $triggerAtMillis")
+            } else {
+                if (Build.VERSION.SDK_INT >= 31 && am.canScheduleExactAlarms()) {
+                    am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pending)
+                } else {
+                    am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pending)
+                }
+                AppLogger.i("UnifiedAlarmScheduler", "Scheduled exact alarm for occurrence $occurrenceId at $triggerAtMillis")
+            }
+
+            // Persist scheduled record for reconciliation
+            saveRecord(context, occurrenceId, title, triggerAtMillis, isAlarmStyle, nagMinutes, nagMax, nagCount)
+        } catch (e: Exception) {
+            AppLogger.e("UnifiedAlarmScheduler", "Failed to schedule alarm for $occurrenceId", e)
         }
-        schedule(context,id,data)
+    }
+
+    fun cancel(context: Context, occurrenceId: Long) {
+        val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(context, RepeatReminderReceiver::class.java).apply {
+            setAction("remember_me.ALARM_TRIGGER")
+        }
+        val pending = PendingIntent.getBroadcast(
+            context,
+            occurrenceId.toInt(),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        am.cancel(pending)
+
+        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        nm.cancel(notificationId(occurrenceId))
+
+        removeRecord(context, occurrenceId)
+        AppLogger.i("UnifiedAlarmScheduler", "Cancelled alarm for occurrence $occurrenceId")
+    }
+
+    fun fire(
+        context: Context,
+        occurrenceId: Long,
+        title: String,
+        isAlarmStyle: Boolean,
+        nagMinutes: Int,
+        nagMax: Int,
+        nagCount: Int
+    ) {
+        AppLogger.i("UnifiedAlarmScheduler", "Firing reminder for occurrence $occurrenceId ($title)")
+
+        // Permission check on Android 13+
+        if (Build.VERSION.SDK_INT >= 33 &&
+            context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            AppLogger.w("UnifiedAlarmScheduler", "POST_NOTIFICATIONS not granted. Cannot display notification.")
+            return
+        }
+
+        NotificationChannels.init(context)
+        val channelId = if (isAlarmStyle) {
+            NotificationChannels.CHANNEL_REMINDERS_ALARM_V2
+        } else {
+            NotificationChannels.CHANNEL_REMINDERS_V2
+        }
+
+        val launchIntent = Intent(context, MainActivity::class.java).apply {
+            putExtra("occurrenceId", occurrenceId)
+            putExtra("dailyTab", "today")
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        val contentPending = PendingIntent.getActivity(
+            context,
+            occurrenceId.toInt(),
+            launchIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Broadcast actions targeting NotificationActionReceiver
+        fun actionPending(action: String, requestCode: Int): PendingIntent {
+            val intent = Intent(context, NotificationActionReceiver::class.java).apply {
+                putExtra("occurrenceId", occurrenceId)
+                putExtra("action", action)
+                putExtra("notificationId", notificationId(occurrenceId))
+                putExtra("taskTitle", title)
+            }
+            return PendingIntent.getBroadcast(
+                context,
+                requestCode,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+        }
+
+        val builder = NotificationCompat.Builder(context, channelId)
+            .setSmallIcon(R.drawable.ic_stat_remember)
+            .setContentTitle(title)
+            .setContentText("Your scheduled reminder")
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setCategory(if (isAlarmStyle) NotificationCompat.CATEGORY_ALARM else NotificationCompat.CATEGORY_REMINDER)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setContentIntent(contentPending)
+            .setAutoCancel(true)
+            .addAction(
+                R.drawable.ic_stat_remember,
+                "Done",
+                actionPending("mark_done", (occurrenceId * 10 + 1).toInt())
+            )
+            .addAction(
+                R.drawable.ic_stat_remember,
+                "Snooze 10m",
+                actionPending("snooze_10", (occurrenceId * 10 + 2).toInt())
+            )
+
+        if (isAlarmStyle) {
+            builder.setFullScreenIntent(contentPending, true)
+        }
+
+        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        nm.notify(notificationId(occurrenceId), builder.build())
+
+        // Handle "Nag until done" if enabled
+        if (nagMinutes > 0 && nagCount < nagMax) {
+            val nextNagTime = System.currentTimeMillis() + (nagMinutes * 60 * 1000L)
+            schedule(context, occurrenceId, title, nextNagTime, isAlarmStyle, nagMinutes, nagMax, nagCount + 1)
+        }
+    }
+
+    fun restoreAll(context: Context) {
+        val records = getScheduledRecords(context)
+        val now = System.currentTimeMillis()
+        AppLogger.i("UnifiedAlarmScheduler", "Restoring ${records.length()} alarms after system reboot/update")
+        for (i in 0 until records.length()) {
+            val rec = records.getJSONObject(i)
+            val time = rec.getLong("triggerAt")
+            val id = rec.getLong("occurrenceId")
+            if (time > now) {
+                schedule(
+                    context,
+                    id,
+                    rec.getString("title"),
+                    time,
+                    rec.optBoolean("isAlarmStyle", false),
+                    rec.optInt("nagMinutes", 0),
+                    rec.optInt("nagMax", 0),
+                    rec.optInt("nagCount", 0)
+                )
+            }
+        }
+    }
+
+    fun reconcile(context: Context, desired: List<JSONObject>) {
+        val current = getScheduledRecords(context)
+        val desiredIds = desired.map { it.getLong("occurrenceId") }.toSet()
+        AppLogger.i("UnifiedAlarmScheduler", "Reconciling alarms: ${desired.size} desired, ${current.length()} currently scheduled")
+
+        // 1. Cancel and remove records that are not in desired
+        for (i in 0 until current.length()) {
+            val rec = current.getJSONObject(i)
+            val id = rec.getLong("occurrenceId")
+            if (!desiredIds.contains(id)) {
+                cancel(context, id)
+            }
+        }
+
+        // 2. Schedule all desired
+        for (item in desired) {
+            schedule(
+                context,
+                item.getLong("occurrenceId"),
+                item.getString("title"),
+                item.getLong("triggerAt"),
+                item.optBoolean("isAlarmStyle", false),
+                item.optInt("nagMinutes", 0),
+                item.optInt("nagMax", 0),
+                item.optInt("nagCount", 0)
+            )
+        }
+    }
+
+    private fun notificationId(occurrenceId: Long): Int = (0x40000000 + (occurrenceId % 1000000)).toInt()
+
+    private fun saveRecord(
+        context: Context,
+        occurrenceId: Long,
+        title: String,
+        triggerAt: Long,
+        isAlarmStyle: Boolean,
+        nagMinutes: Int,
+        nagMax: Int,
+        nagCount: Int
+    ) {
+        val p = prefs(context)
+        val records = JSONArray(p.getString(KEY_SCHEDULED, "[]") ?: "[]")
+        val updated = JSONArray()
+        for (i in 0 until records.length()) {
+            val item = records.getJSONObject(i)
+            if (item.getLong("occurrenceId") != occurrenceId) {
+                updated.put(item)
+            }
+        }
+        val newObj = JSONObject().apply {
+            put("occurrenceId", occurrenceId)
+            put("title", title)
+            put("triggerAt", triggerAt)
+            put("isAlarmStyle", isAlarmStyle)
+            put("nagMinutes", nagMinutes)
+            put("nagMax", nagMax)
+            put("nagCount", nagCount)
+        }
+        updated.put(newObj)
+        p.edit().putString(KEY_SCHEDULED, updated.toString()).apply()
+    }
+
+    private fun removeRecord(context: Context, occurrenceId: Long) {
+        val p = prefs(context)
+        val records = JSONArray(p.getString(KEY_SCHEDULED, "[]") ?: "[]")
+        val updated = JSONArray()
+        for (i in 0 until records.length()) {
+            val item = records.getJSONObject(i)
+            if (item.getLong("occurrenceId") != occurrenceId) {
+                updated.put(item)
+            }
+        }
+        p.edit().putString(KEY_SCHEDULED, updated.toString()).apply()
+    }
+
+    private fun getScheduledRecords(context: Context): JSONArray {
+        val p = prefs(context)
+        return JSONArray(p.getString(KEY_SCHEDULED, "[]") ?: "[]")
     }
 }
-class RepeatReminderReceiver: BroadcastReceiver() {
+
+class RepeatReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if(intent.action == "remember_me.REPEAT") RepeatReminders.fire(context,intent.getIntExtra("task",0),intent.getLongExtra("time",System.currentTimeMillis()))
-        else RepeatReminders.restore(context)
+        val action = intent.action
+        AppLogger.i("RepeatReminderReceiver", "Received broadcast action=$action")
+
+        if (action == "remember_me.ALARM_TRIGGER") {
+            val occurrenceId = intent.getLongExtra("occurrenceId", 0L)
+            val title = intent.getStringExtra("title") ?: "Reminder"
+            val isAlarmStyle = intent.getBooleanExtra("isAlarmStyle", false)
+            val nagMinutes = intent.getIntExtra("nagMinutes", 0)
+            val nagMax = intent.getIntExtra("nagMax", 0)
+            val nagCount = intent.getIntExtra("nagCount", 0)
+
+            UnifiedAlarmScheduler.fire(context, occurrenceId, title, isAlarmStyle, nagMinutes, nagMax, nagCount)
+        } else {
+            // BOOT_COMPLETED, MY_PACKAGE_REPLACED, TIMEZONE_CHANGED, TIME_SET, etc.
+            UnifiedAlarmScheduler.restoreAll(context)
+        }
     }
 }

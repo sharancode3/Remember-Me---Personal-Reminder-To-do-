@@ -23,6 +23,12 @@ class MainActivity : FlutterActivity() {
     private val focusExpiry = Runnable { finishFocus() }
     private var trailMaps: GoogleTrailMapFactory? = null
 
+    override fun onCreate(savedInstanceState: android.os.Bundle?) {
+        super.onCreate(savedInstanceState)
+        AppLogger.init(applicationContext)
+        NotificationChannels.init(applicationContext)
+    }
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         trailMaps = GoogleTrailMapFactory(flutterEngine.dartExecutor.binaryMessenger)
@@ -31,16 +37,81 @@ class MainActivity : FlutterActivity() {
             .setMethodCallHandler { call, result ->
                 try {
                     when (call.method) {
-                        "scheduleRepeat" -> { RepeatReminders.save(this, call.argument<Number>("id")!!.toInt(), call.argument<String>("title")!!, call.argument<Number>("anchor")!!.toLong(), call.argument<String>("rule")!!); result.success(null) }
-                        "cancelRepeat" -> { RepeatReminders.cancel(this, call.argument<Number>("id")!!.toInt()); result.success(null) }
-                        "skipRepeat" -> { RepeatReminders.skip(this,call.argument<Number>("id")!!.toInt(),call.argument<String>("day")!!,call.argument<Boolean>("value") == true); result.success(null) }
-                        "consumeRepeatAction" -> {
-                            val id = intent.getIntExtra("repeatTask",0)
-                            val action = intent.getStringExtra("repeatAction")
-                            val day = intent.getStringExtra("repeatDate")
-                            if(id != 0 && (action == "mark_done" || action == "snooze_10")) (getSystemService(NOTIFICATION_SERVICE) as android.app.NotificationManager).cancel(0x40000000 + id)
-                            intent.removeExtra("repeatTask"); intent.removeExtra("repeatAction"); intent.removeExtra("repeatDate")
-                            result.success(if(id == 0) null else mapOf("id" to id,"action" to action,"day" to day))
+                        "drainNotificationOutbox" -> {
+                            val outbox = NotificationActionReceiver.getPendingOutbox(this)
+                            result.success(outbox)
+                        }
+                        "acknowledgeOutboxActions" -> {
+                            val uuids = call.argument<List<String>>("uuids") ?: emptyList()
+                            NotificationActionReceiver.acknowledge(this, uuids)
+                            result.success(null)
+                        }
+                        "scheduleAlarm" -> {
+                            val id = call.argument<Number>("occurrenceId")!!.toLong()
+                            val title = call.argument<String>("title")!!
+                            val triggerAt = call.argument<Number>("triggerAt")!!.toLong()
+                            val isAlarmStyle = call.argument<Boolean>("isAlarmStyle") ?: false
+                            val nagMinutes = call.argument<Int>("nagMinutes") ?: 0
+                            val nagMax = call.argument<Int>("nagMax") ?: 0
+                            UnifiedAlarmScheduler.schedule(this, id, title, triggerAt, isAlarmStyle, nagMinutes, nagMax)
+                            result.success(null)
+                        }
+                        "cancelAlarm" -> {
+                            val id = call.argument<Number>("occurrenceId")!!.toLong()
+                            UnifiedAlarmScheduler.cancel(this, id)
+                            result.success(null)
+                        }
+                        "recreateReminderChannelWithSound" -> {
+                            val uri = call.argument<String>("soundUri")
+                            NotificationChannels.updateCustomSound(this, uri)
+                            result.success(null)
+                        }
+                        "getReliabilityStatus" -> {
+                            val pm = getSystemService(POWER_SERVICE) as android.os.PowerManager
+                            val am = getSystemService(ALARM_SERVICE) as android.app.AlarmManager
+                            val notifGranted = Build.VERSION.SDK_INT < 33 || checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                            val exactGranted = Build.VERSION.SDK_INT < 31 || am.canScheduleExactAlarms()
+                            val batteryIgnored = pm.isIgnoringBatteryOptimizations(packageName)
+                            result.success(mapOf(
+                                "notificationsGranted" to notifGranted,
+                                "exactAlarmsGranted" to exactGranted,
+                                "batteryOptimizationsIgnored" to batteryIgnored
+                            ))
+                        }
+                        "openExactAlarmSettings" -> {
+                            if (Build.VERSION.SDK_INT >= 31) {
+                                startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).setData(android.net.Uri.parse("package:$packageName")))
+                            }
+                            result.success(null)
+                        }
+                        "openBatteryOptSettings" -> {
+                            startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+                            result.success(null)
+                        }
+                        "openNotificationSettings" -> {
+                            val intent = if (Build.VERSION.SDK_INT >= 26) {
+                                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                            } else {
+                                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).setData(android.net.Uri.parse("package:$packageName"))
+                            }
+                            startActivity(intent)
+                            result.success(null)
+                        }
+                        "testReminder" -> {
+                            val testId = (System.currentTimeMillis() % 100000L)
+                            UnifiedAlarmScheduler.schedule(this, testId, "Test Reminder (10s)", System.currentTimeMillis() + 10000L, false)
+                            result.success(null)
+                        }
+                        "reconcileAlarms" -> {
+                            val desired = call.argument<List<Map<String, Any>>>("desired") ?: emptyList()
+                            val jsonList = desired.map { org.json.JSONObject(it) }
+                            UnifiedAlarmScheduler.reconcile(this, jsonList)
+                            result.success(null)
+                        }
+                        "openUrl" -> {
+                            val url = call.argument<String>("url") ?: "https://dontkillmyapp.com"
+                            startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)))
+                            result.success(null)
                         }
                         "timeZone" -> result.success(TimeZone.getDefault().id)
                         "openAttribution" -> { startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://www.openstreetmap.org/copyright"))); result.success(null) }

@@ -48,70 +48,80 @@ const TaskModelSchema = CollectionSchema(
       name: r'endAt',
       type: IsarType.dateTime,
     ),
-    r'isArchived': PropertySchema(
+    r'isAlarmStyle': PropertySchema(
       id: 6,
+      name: r'isAlarmStyle',
+      type: IsarType.bool,
+    ),
+    r'isArchived': PropertySchema(
+      id: 7,
       name: r'isArchived',
       type: IsarType.bool,
     ),
     r'isDone': PropertySchema(
-      id: 7,
+      id: 8,
       name: r'isDone',
       type: IsarType.bool,
     ),
     r'lastOverdueNudgeAt': PropertySchema(
-      id: 8,
+      id: 9,
       name: r'lastOverdueNudgeAt',
       type: IsarType.dateTime,
     ),
     r'manuallyRescheduled': PropertySchema(
-      id: 9,
+      id: 10,
       name: r'manuallyRescheduled',
       type: IsarType.bool,
     ),
+    r'nagMinutes': PropertySchema(
+      id: 11,
+      name: r'nagMinutes',
+      type: IsarType.long,
+    ),
     r'priority': PropertySchema(
-      id: 10,
+      id: 12,
       name: r'priority',
       type: IsarType.long,
     ),
     r'recurrenceRule': PropertySchema(
-      id: 11,
+      id: 13,
       name: r'recurrenceRule',
       type: IsarType.string,
     ),
     r'reminderOffsetMinutes': PropertySchema(
-      id: 12,
+      id: 14,
       name: r'reminderOffsetMinutes',
       type: IsarType.long,
     ),
     r'startAt': PropertySchema(
-      id: 13,
+      id: 15,
       name: r'startAt',
       type: IsarType.dateTime,
     ),
     r'status': PropertySchema(
-      id: 14,
+      id: 16,
       name: r'status',
       type: IsarType.byte,
       enumMap: _TaskModelstatusEnumValueMap,
     ),
     r'tag': PropertySchema(
-      id: 15,
+      id: 17,
       name: r'tag',
       type: IsarType.object,
       target: r'TaskTagModel',
     ),
     r'templateId': PropertySchema(
-      id: 16,
+      id: 18,
       name: r'templateId',
       type: IsarType.long,
     ),
     r'title': PropertySchema(
-      id: 17,
+      id: 19,
       name: r'title',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 18,
+      id: 20,
       name: r'updatedAt',
       type: IsarType.dateTime,
     )
@@ -232,24 +242,26 @@ void _taskModelSerialize(
   writer.writeDateTime(offsets[3], object.createdAt);
   writer.writeString(offsets[4], object.description);
   writer.writeDateTime(offsets[5], object.endAt);
-  writer.writeBool(offsets[6], object.isArchived);
-  writer.writeBool(offsets[7], object.isDone);
-  writer.writeDateTime(offsets[8], object.lastOverdueNudgeAt);
-  writer.writeBool(offsets[9], object.manuallyRescheduled);
-  writer.writeLong(offsets[10], object.priority);
-  writer.writeString(offsets[11], object.recurrenceRule);
-  writer.writeLong(offsets[12], object.reminderOffsetMinutes);
-  writer.writeDateTime(offsets[13], object.startAt);
-  writer.writeByte(offsets[14], object.status.index);
+  writer.writeBool(offsets[6], object.isAlarmStyle);
+  writer.writeBool(offsets[7], object.isArchived);
+  writer.writeBool(offsets[8], object.isDone);
+  writer.writeDateTime(offsets[9], object.lastOverdueNudgeAt);
+  writer.writeBool(offsets[10], object.manuallyRescheduled);
+  writer.writeLong(offsets[11], object.nagMinutes);
+  writer.writeLong(offsets[12], object.priority);
+  writer.writeString(offsets[13], object.recurrenceRule);
+  writer.writeLong(offsets[14], object.reminderOffsetMinutes);
+  writer.writeDateTime(offsets[15], object.startAt);
+  writer.writeByte(offsets[16], object.status.index);
   writer.writeObject<TaskTagModel>(
-    offsets[15],
+    offsets[17],
     allOffsets,
     TaskTagModelSchema.serialize,
     object.tag,
   );
-  writer.writeLong(offsets[16], object.templateId);
-  writer.writeString(offsets[17], object.title);
-  writer.writeDateTime(offsets[18], object.updatedAt);
+  writer.writeLong(offsets[18], object.templateId);
+  writer.writeString(offsets[19], object.title);
+  writer.writeDateTime(offsets[20], object.updatedAt);
 }
 
 TaskModel _taskModelDeserialize(
@@ -272,24 +284,26 @@ TaskModel _taskModelDeserialize(
   object.description = reader.readString(offsets[4]);
   object.endAt = reader.readDateTime(offsets[5]);
   object.id = id;
-  object.isArchived = reader.readBool(offsets[6]);
-  object.lastOverdueNudgeAt = reader.readDateTimeOrNull(offsets[8]);
-  object.manuallyRescheduled = reader.readBool(offsets[9]);
-  object.priority = reader.readLong(offsets[10]);
-  object.recurrenceRule = reader.readString(offsets[11]);
-  object.reminderOffsetMinutes = reader.readLong(offsets[12]);
-  object.startAt = reader.readDateTime(offsets[13]);
+  object.isAlarmStyle = reader.readBool(offsets[6]);
+  object.isArchived = reader.readBool(offsets[7]);
+  object.lastOverdueNudgeAt = reader.readDateTimeOrNull(offsets[9]);
+  object.manuallyRescheduled = reader.readBool(offsets[10]);
+  object.nagMinutes = reader.readLong(offsets[11]);
+  object.priority = reader.readLong(offsets[12]);
+  object.recurrenceRule = reader.readString(offsets[13]);
+  object.reminderOffsetMinutes = reader.readLong(offsets[14]);
+  object.startAt = reader.readDateTime(offsets[15]);
   object.status =
-      _TaskModelstatusValueEnumMap[reader.readByteOrNull(offsets[14])] ??
+      _TaskModelstatusValueEnumMap[reader.readByteOrNull(offsets[16])] ??
           TaskStatus.pending;
   object.tag = reader.readObjectOrNull<TaskTagModel>(
-    offsets[15],
+    offsets[17],
     TaskTagModelSchema.deserialize,
     allOffsets,
   );
-  object.templateId = reader.readLongOrNull(offsets[16]);
-  object.title = reader.readString(offsets[17]);
-  object.updatedAt = reader.readDateTime(offsets[18]);
+  object.templateId = reader.readLongOrNull(offsets[18]);
+  object.title = reader.readString(offsets[19]);
+  object.updatedAt = reader.readDateTime(offsets[20]);
   return object;
 }
 
@@ -323,31 +337,35 @@ P _taskModelDeserializeProp<P>(
     case 7:
       return (reader.readBool(offset)) as P;
     case 8:
-      return (reader.readDateTimeOrNull(offset)) as P;
-    case 9:
       return (reader.readBool(offset)) as P;
+    case 9:
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 10:
-      return (reader.readLong(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 11:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 12:
       return (reader.readLong(offset)) as P;
     case 13:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 14:
+      return (reader.readLong(offset)) as P;
+    case 15:
+      return (reader.readDateTime(offset)) as P;
+    case 16:
       return (_TaskModelstatusValueEnumMap[reader.readByteOrNull(offset)] ??
           TaskStatus.pending) as P;
-    case 15:
+    case 17:
       return (reader.readObjectOrNull<TaskTagModel>(
         offset,
         TaskTagModelSchema.deserialize,
         allOffsets,
       )) as P;
-    case 16:
-      return (reader.readLongOrNull(offset)) as P;
-    case 17:
-      return (reader.readString(offset)) as P;
     case 18:
+      return (reader.readLongOrNull(offset)) as P;
+    case 19:
+      return (reader.readString(offset)) as P;
+    case 20:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1401,6 +1419,16 @@ extension TaskModelQueryFilter
     });
   }
 
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition> isAlarmStyleEqualTo(
+      bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isAlarmStyle',
+        value: value,
+      ));
+    });
+  }
+
   QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition> isArchivedEqualTo(
       bool value) {
     return QueryBuilder.apply(this, (query) {
@@ -1501,6 +1529,60 @@ extension TaskModelQueryFilter
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'manuallyRescheduled',
         value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition> nagMinutesEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'nagMinutes',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition>
+      nagMinutesGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'nagMinutes',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition> nagMinutesLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'nagMinutes',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition> nagMinutesBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'nagMinutes',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -2211,6 +2293,18 @@ extension TaskModelQuerySortBy on QueryBuilder<TaskModel, TaskModel, QSortBy> {
     });
   }
 
+  QueryBuilder<TaskModel, TaskModel, QAfterSortBy> sortByIsAlarmStyle() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isAlarmStyle', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterSortBy> sortByIsAlarmStyleDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isAlarmStyle', Sort.desc);
+    });
+  }
+
   QueryBuilder<TaskModel, TaskModel, QAfterSortBy> sortByIsArchived() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isArchived', Sort.asc);
@@ -2258,6 +2352,18 @@ extension TaskModelQuerySortBy on QueryBuilder<TaskModel, TaskModel, QSortBy> {
       sortByManuallyRescheduledDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'manuallyRescheduled', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterSortBy> sortByNagMinutes() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'nagMinutes', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterSortBy> sortByNagMinutesDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'nagMinutes', Sort.desc);
     });
   }
 
@@ -2436,6 +2542,18 @@ extension TaskModelQuerySortThenBy
     });
   }
 
+  QueryBuilder<TaskModel, TaskModel, QAfterSortBy> thenByIsAlarmStyle() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isAlarmStyle', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterSortBy> thenByIsAlarmStyleDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isAlarmStyle', Sort.desc);
+    });
+  }
+
   QueryBuilder<TaskModel, TaskModel, QAfterSortBy> thenByIsArchived() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isArchived', Sort.asc);
@@ -2483,6 +2601,18 @@ extension TaskModelQuerySortThenBy
       thenByManuallyRescheduledDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'manuallyRescheduled', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterSortBy> thenByNagMinutes() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'nagMinutes', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterSortBy> thenByNagMinutesDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'nagMinutes', Sort.desc);
     });
   }
 
@@ -2619,6 +2749,12 @@ extension TaskModelQueryWhereDistinct
     });
   }
 
+  QueryBuilder<TaskModel, TaskModel, QDistinct> distinctByIsAlarmStyle() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isAlarmStyle');
+    });
+  }
+
   QueryBuilder<TaskModel, TaskModel, QDistinct> distinctByIsArchived() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isArchived');
@@ -2641,6 +2777,12 @@ extension TaskModelQueryWhereDistinct
       distinctByManuallyRescheduled() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'manuallyRescheduled');
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QDistinct> distinctByNagMinutes() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'nagMinutes');
     });
   }
 
@@ -2743,6 +2885,12 @@ extension TaskModelQueryProperty
     });
   }
 
+  QueryBuilder<TaskModel, bool, QQueryOperations> isAlarmStyleProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isAlarmStyle');
+    });
+  }
+
   QueryBuilder<TaskModel, bool, QQueryOperations> isArchivedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isArchived');
@@ -2766,6 +2914,12 @@ extension TaskModelQueryProperty
       manuallyRescheduledProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'manuallyRescheduled');
+    });
+  }
+
+  QueryBuilder<TaskModel, int, QQueryOperations> nagMinutesProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'nagMinutes');
     });
   }
 

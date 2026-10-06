@@ -49,6 +49,8 @@ class TaskModel {
   int priority = 1;
   String recurrenceRule = 'none';
   int reminderOffsetMinutes = 10;
+  bool isAlarmStyle = false;
+  int nagMinutes = 0;
 
   List<ChecklistItemModel> checklist = [];
   TaskTagModel? tag;

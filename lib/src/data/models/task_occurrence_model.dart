@@ -23,11 +23,15 @@ class TaskOccurrence {
   @enumerated
   OccurrenceStatus status = OccurrenceStatus.pending;
 
+  String? titleOverride;
   String? noteOverride;
   int? durationMinutesOverride;
 
   @Index()
   late int notificationId; // int32 collision-free ID
+
+  DateTime? completedAt;
+  DateTime? snoozedUntil;
 
   DateTime updatedAt = DateTime.now();
 }

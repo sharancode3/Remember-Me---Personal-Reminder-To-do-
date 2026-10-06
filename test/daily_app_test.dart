@@ -9,6 +9,7 @@ import 'package:remember_me/src/presentation/providers/providers.dart';
 import 'package:remember_me/src/presentation/screens/daily_home_screen.dart';
 import 'package:remember_me/src/services/daily_trail_service.dart';
 import 'package:remember_me/src/services/local_notification_service.dart';
+import 'package:remember_me/src/core/notifications/reminder_scheduler.dart';
 
 class _Notifications extends LocalNotificationService {
   final scheduled = <int, DateTime>{};
@@ -52,7 +53,7 @@ void main() {
     allowedApps = [];
     savedPlaces = null;
     notifications = _Notifications();
-    repository = DailyRepository(null, notifications);
+    repository = DailyRepository(null, InMemoryReminderScheduler(), notifications);
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(DailyTrailService.channel, (call) async {
           nativeActions.add(call.method);

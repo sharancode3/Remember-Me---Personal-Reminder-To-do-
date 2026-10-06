@@ -17,44 +17,59 @@ const TaskOccurrenceSchema = CollectionSchema(
   name: r'TaskOccurrence',
   id: -1163587584219672540,
   properties: {
-    r'durationMinutesOverride': PropertySchema(
+    r'completedAt': PropertySchema(
       id: 0,
+      name: r'completedAt',
+      type: IsarType.dateTime,
+    ),
+    r'durationMinutesOverride': PropertySchema(
+      id: 1,
       name: r'durationMinutesOverride',
       type: IsarType.long,
     ),
     r'noteOverride': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'noteOverride',
       type: IsarType.string,
     ),
     r'notificationId': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'notificationId',
       type: IsarType.long,
     ),
     r'occurrenceDate': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'occurrenceDate',
       type: IsarType.string,
     ),
     r'scheduledAt': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'scheduledAt',
       type: IsarType.dateTime,
     ),
+    r'snoozedUntil': PropertySchema(
+      id: 6,
+      name: r'snoozedUntil',
+      type: IsarType.dateTime,
+    ),
     r'status': PropertySchema(
-      id: 5,
+      id: 7,
       name: r'status',
       type: IsarType.byte,
       enumMap: _TaskOccurrencestatusEnumValueMap,
     ),
     r'taskId': PropertySchema(
-      id: 6,
+      id: 8,
       name: r'taskId',
       type: IsarType.long,
     ),
+    r'titleOverride': PropertySchema(
+      id: 9,
+      name: r'titleOverride',
+      type: IsarType.string,
+    ),
     r'updatedAt': PropertySchema(
-      id: 7,
+      id: 10,
       name: r'updatedAt',
       type: IsarType.dateTime,
     )
@@ -131,6 +146,12 @@ int _taskOccurrenceEstimateSize(
     }
   }
   bytesCount += 3 + object.occurrenceDate.length * 3;
+  {
+    final value = object.titleOverride;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   return bytesCount;
 }
 
@@ -140,14 +161,17 @@ void _taskOccurrenceSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeLong(offsets[0], object.durationMinutesOverride);
-  writer.writeString(offsets[1], object.noteOverride);
-  writer.writeLong(offsets[2], object.notificationId);
-  writer.writeString(offsets[3], object.occurrenceDate);
-  writer.writeDateTime(offsets[4], object.scheduledAt);
-  writer.writeByte(offsets[5], object.status.index);
-  writer.writeLong(offsets[6], object.taskId);
-  writer.writeDateTime(offsets[7], object.updatedAt);
+  writer.writeDateTime(offsets[0], object.completedAt);
+  writer.writeLong(offsets[1], object.durationMinutesOverride);
+  writer.writeString(offsets[2], object.noteOverride);
+  writer.writeLong(offsets[3], object.notificationId);
+  writer.writeString(offsets[4], object.occurrenceDate);
+  writer.writeDateTime(offsets[5], object.scheduledAt);
+  writer.writeDateTime(offsets[6], object.snoozedUntil);
+  writer.writeByte(offsets[7], object.status.index);
+  writer.writeLong(offsets[8], object.taskId);
+  writer.writeString(offsets[9], object.titleOverride);
+  writer.writeDateTime(offsets[10], object.updatedAt);
 }
 
 TaskOccurrence _taskOccurrenceDeserialize(
@@ -157,17 +181,20 @@ TaskOccurrence _taskOccurrenceDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = TaskOccurrence();
-  object.durationMinutesOverride = reader.readLongOrNull(offsets[0]);
+  object.completedAt = reader.readDateTimeOrNull(offsets[0]);
+  object.durationMinutesOverride = reader.readLongOrNull(offsets[1]);
   object.id = id;
-  object.noteOverride = reader.readStringOrNull(offsets[1]);
-  object.notificationId = reader.readLong(offsets[2]);
-  object.occurrenceDate = reader.readString(offsets[3]);
-  object.scheduledAt = reader.readDateTime(offsets[4]);
+  object.noteOverride = reader.readStringOrNull(offsets[2]);
+  object.notificationId = reader.readLong(offsets[3]);
+  object.occurrenceDate = reader.readString(offsets[4]);
+  object.scheduledAt = reader.readDateTime(offsets[5]);
+  object.snoozedUntil = reader.readDateTimeOrNull(offsets[6]);
   object.status =
-      _TaskOccurrencestatusValueEnumMap[reader.readByteOrNull(offsets[5])] ??
+      _TaskOccurrencestatusValueEnumMap[reader.readByteOrNull(offsets[7])] ??
           OccurrenceStatus.pending;
-  object.taskId = reader.readLong(offsets[6]);
-  object.updatedAt = reader.readDateTime(offsets[7]);
+  object.taskId = reader.readLong(offsets[8]);
+  object.titleOverride = reader.readStringOrNull(offsets[9]);
+  object.updatedAt = reader.readDateTime(offsets[10]);
   return object;
 }
 
@@ -179,22 +206,28 @@ P _taskOccurrenceDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readLongOrNull(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 1:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLongOrNull(offset)) as P;
     case 2:
-      return (reader.readLong(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 3:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 4:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 5:
+      return (reader.readDateTime(offset)) as P;
+    case 6:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 7:
       return (_TaskOccurrencestatusValueEnumMap[
               reader.readByteOrNull(offset)] ??
           OccurrenceStatus.pending) as P;
-    case 6:
+    case 8:
       return (reader.readLong(offset)) as P;
-    case 7:
+    case 9:
+      return (reader.readStringOrNull(offset)) as P;
+    case 10:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -743,6 +776,80 @@ extension TaskOccurrenceQueryWhere
 extension TaskOccurrenceQueryFilter
     on QueryBuilder<TaskOccurrence, TaskOccurrence, QFilterCondition> {
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
+      completedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'completedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
+      completedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'completedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
+      completedAtEqualTo(DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'completedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
+      completedAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'completedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
+      completedAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'completedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
+      completedAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'completedAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
       durationMinutesOverrideIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1274,6 +1381,80 @@ extension TaskOccurrenceQueryFilter
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
+      snoozedUntilIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'snoozedUntil',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
+      snoozedUntilIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'snoozedUntil',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
+      snoozedUntilEqualTo(DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'snoozedUntil',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
+      snoozedUntilGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'snoozedUntil',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
+      snoozedUntilLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'snoozedUntil',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
+      snoozedUntilBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'snoozedUntil',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
       statusEqualTo(OccurrenceStatus value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -1386,6 +1567,160 @@ extension TaskOccurrenceQueryFilter
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
+      titleOverrideIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'titleOverride',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
+      titleOverrideIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'titleOverride',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
+      titleOverrideEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'titleOverride',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
+      titleOverrideGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'titleOverride',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
+      titleOverrideLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'titleOverride',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
+      titleOverrideBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'titleOverride',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
+      titleOverrideStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'titleOverride',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
+      titleOverrideEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'titleOverride',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
+      titleOverrideContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'titleOverride',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
+      titleOverrideMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'titleOverride',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
+      titleOverrideIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'titleOverride',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
+      titleOverrideIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'titleOverride',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
       updatedAtEqualTo(DateTime value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -1450,6 +1785,20 @@ extension TaskOccurrenceQueryLinks
 
 extension TaskOccurrenceQuerySortBy
     on QueryBuilder<TaskOccurrence, TaskOccurrence, QSortBy> {
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
+      sortByCompletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'completedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
+      sortByCompletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'completedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
       sortByDurationMinutesOverride() {
     return QueryBuilder.apply(this, (query) {
@@ -1520,6 +1869,20 @@ extension TaskOccurrenceQuerySortBy
     });
   }
 
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
+      sortBySnoozedUntil() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'snoozedUntil', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
+      sortBySnoozedUntilDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'snoozedUntil', Sort.desc);
+    });
+  }
+
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy> sortByStatus() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'status', Sort.asc);
@@ -1546,6 +1909,20 @@ extension TaskOccurrenceQuerySortBy
     });
   }
 
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
+      sortByTitleOverride() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'titleOverride', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
+      sortByTitleOverrideDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'titleOverride', Sort.desc);
+    });
+  }
+
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy> sortByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.asc);
@@ -1562,6 +1939,20 @@ extension TaskOccurrenceQuerySortBy
 
 extension TaskOccurrenceQuerySortThenBy
     on QueryBuilder<TaskOccurrence, TaskOccurrence, QSortThenBy> {
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
+      thenByCompletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'completedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
+      thenByCompletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'completedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
       thenByDurationMinutesOverride() {
     return QueryBuilder.apply(this, (query) {
@@ -1644,6 +2035,20 @@ extension TaskOccurrenceQuerySortThenBy
     });
   }
 
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
+      thenBySnoozedUntil() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'snoozedUntil', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
+      thenBySnoozedUntilDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'snoozedUntil', Sort.desc);
+    });
+  }
+
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy> thenByStatus() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'status', Sort.asc);
@@ -1670,6 +2075,20 @@ extension TaskOccurrenceQuerySortThenBy
     });
   }
 
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
+      thenByTitleOverride() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'titleOverride', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
+      thenByTitleOverrideDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'titleOverride', Sort.desc);
+    });
+  }
+
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy> thenByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.asc);
@@ -1686,6 +2105,13 @@ extension TaskOccurrenceQuerySortThenBy
 
 extension TaskOccurrenceQueryWhereDistinct
     on QueryBuilder<TaskOccurrence, TaskOccurrence, QDistinct> {
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QDistinct>
+      distinctByCompletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'completedAt');
+    });
+  }
+
   QueryBuilder<TaskOccurrence, TaskOccurrence, QDistinct>
       distinctByDurationMinutesOverride() {
     return QueryBuilder.apply(this, (query) {
@@ -1722,6 +2148,13 @@ extension TaskOccurrenceQueryWhereDistinct
     });
   }
 
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QDistinct>
+      distinctBySnoozedUntil() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'snoozedUntil');
+    });
+  }
+
   QueryBuilder<TaskOccurrence, TaskOccurrence, QDistinct> distinctByStatus() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'status');
@@ -1731,6 +2164,14 @@ extension TaskOccurrenceQueryWhereDistinct
   QueryBuilder<TaskOccurrence, TaskOccurrence, QDistinct> distinctByTaskId() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'taskId');
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QDistinct>
+      distinctByTitleOverride({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'titleOverride',
+          caseSensitive: caseSensitive);
     });
   }
 
@@ -1747,6 +2188,13 @@ extension TaskOccurrenceQueryProperty
   QueryBuilder<TaskOccurrence, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, DateTime?, QQueryOperations>
+      completedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'completedAt');
     });
   }
 
@@ -1784,6 +2232,13 @@ extension TaskOccurrenceQueryProperty
     });
   }
 
+  QueryBuilder<TaskOccurrence, DateTime?, QQueryOperations>
+      snoozedUntilProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'snoozedUntil');
+    });
+  }
+
   QueryBuilder<TaskOccurrence, OccurrenceStatus, QQueryOperations>
       statusProperty() {
     return QueryBuilder.apply(this, (query) {
@@ -1794,6 +2249,13 @@ extension TaskOccurrenceQueryProperty
   QueryBuilder<TaskOccurrence, int, QQueryOperations> taskIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'taskId');
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, String?, QQueryOperations>
+      titleOverrideProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'titleOverride');
     });
   }
 

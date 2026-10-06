@@ -14,10 +14,12 @@ import '../../services/daily_trail_service.dart';
 import '../providers/providers.dart';
 import 'daily_focus_screen.dart';
 import 'daily_trail_screen.dart';
+import 'reliability_check_screen.dart';
 
 final dailyRepositoryProvider = Provider<DailyRepository>((ref) {
   final repository = DailyRepository(
     kIsWeb ? null : ref.watch(isarServiceProvider),
+    ref.watch(reminderSchedulerProvider),
     ref.watch(localNotificationServiceProvider),
   );
   ref.onDispose(repository.dispose);
@@ -91,6 +93,8 @@ class _DailyHomeScreenState extends ConsumerState<DailyHomeScreen>
       _consumeNavigation();
       _consumeRepeatAction();
       _syncWidget();
+      unawaited(ref.read(dailyRepositoryProvider).drainAndProcessOutbox());
+      unawaited(ref.read(dailyRepositoryProvider).reconcile());
       _actions = ref.read(localNotificationServiceProvider).actionEvents.listen(
         (event) async {
           final repository = ref.read(dailyRepositoryProvider);
@@ -231,6 +235,8 @@ class _DailyHomeScreenState extends ConsumerState<DailyHomeScreen>
       _consumeNavigation();
       _consumeRepeatAction();
       _syncWidget();
+      unawaited(ref.read(dailyRepositoryProvider).drainAndProcessOutbox());
+      unawaited(ref.read(dailyRepositoryProvider).reconcile());
     }
   }
 
@@ -449,18 +455,18 @@ class _DailyHomeScreenState extends ConsumerState<DailyHomeScreen>
             ),
             ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.notifications_outlined),
-              title: const Text('Notification permissions'),
+              leading: const Icon(Icons.verified_user_outlined),
+              title: const Text('Reliability check & sound'),
+              subtitle: const Text('Diagnose wakeups, permissions, & alarm volume'),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () async {
-                try {
-                  await ref
-                      .read(localNotificationServiceProvider)
-                      .requestPermissions();
-                  if (context.mounted) Navigator.pop(context);
-                } catch (e) {
-                  if (context.mounted) showMessage(context, readableError(e));
-                }
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => const ReliabilityCheckScreen(),
+                  ),
+                );
               },
             ),
             const Divider(),
@@ -998,10 +1004,6 @@ Future<void> showDailyEditor(
   WidgetRef ref, {
   TaskModel? task,
 }) async {
-  if (task?.recurrenceRule == 'occurrence') {
-    task = await ref.read(dailyRepositoryProvider).find(task!.templateId!);
-    if (!context.mounted) return;
-  }
   await showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
@@ -1020,6 +1022,10 @@ class _DailyEditor extends ConsumerStatefulWidget {
 
 class _DailyEditorState extends ConsumerState<_DailyEditor> {
   late final TaskModel _draftTask = widget.task ?? TaskModel();
+  late final bool _isOccurrence = widget.task != null &&
+      widget.task!.templateId != null &&
+      widget.task!.templateId != widget.task!.id;
+  late EditRecurrenceScope _editScope = EditRecurrenceScope.thisOccurrenceOnly;
   late final TextEditingController _title = TextEditingController(
     text: widget.task?.title,
   );
@@ -1032,6 +1038,8 @@ class _DailyEditorState extends ConsumerState<_DailyEditor> {
   );
   late bool _reminder =
       widget.task == null || widget.task!.reminderOffsetMinutes >= 0;
+  late bool _isAlarmStyle = widget.task?.isAlarmStyle ?? false;
+  late int _nagMinutes = widget.task?.nagMinutes ?? 0;
   bool _saving = false;
   late RepeatKind _repeat = ReminderRecurrence.decode(
     widget.task?.recurrenceRule ?? 'none',
@@ -1241,9 +1249,61 @@ class _DailyEditorState extends ConsumerState<_DailyEditor> {
                   )
                 : const SizedBox.shrink(),
           ),
+          if (_reminder) ...[
+            const SizedBox(height: 8),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Alarm-style (wake screen)'),
+              subtitle: const Text('Plays alarm sound and wakes screen with alert'),
+              value: _isAlarmStyle,
+              onChanged: _saving ? null : (v) => setState(() => _isAlarmStyle = v),
+            ),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<int>(
+              isExpanded: true,
+              initialValue: _nagMinutes,
+              decoration: const InputDecoration(
+                labelText: 'Nag until done',
+                prefixIcon: Icon(Icons.repeat_one),
+              ),
+              items: const [
+                DropdownMenuItem(value: 0, child: Text('Off (fire once)')),
+                DropdownMenuItem(value: 1, child: Text('Repeat every 1 min until done')),
+                DropdownMenuItem(value: 5, child: Text('Repeat every 5 min until done')),
+                DropdownMenuItem(value: 10, child: Text('Repeat every 10 min until done')),
+              ],
+              onChanged: _saving ? null : (v) => setState(() => _nagMinutes = v ?? 0),
+            ),
+          ],
+          if (_isOccurrence) ...[
+            const SizedBox(height: 12),
+            DropdownButtonFormField<EditRecurrenceScope>(
+              isExpanded: true,
+              initialValue: _editScope,
+              decoration: const InputDecoration(
+                labelText: 'Apply changes to',
+                prefixIcon: Icon(Icons.edit_calendar),
+              ),
+              items: const [
+                DropdownMenuItem(
+                  value: EditRecurrenceScope.thisOccurrenceOnly,
+                  child: Text('This occurrence only'),
+                ),
+                DropdownMenuItem(
+                  value: EditRecurrenceScope.thisAndFuture,
+                  child: Text('This and future occurrences'),
+                ),
+                DropdownMenuItem(
+                  value: EditRecurrenceScope.all,
+                  child: Text('All occurrences (series)'),
+                ),
+              ],
+              onChanged: _saving ? null : (v) => setState(() => _editScope = v ?? EditRecurrenceScope.thisOccurrenceOnly),
+            ),
+          ],
           if (_error != null)
             Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.only(top: 12, bottom: 4),
               child: Text(
                 _error!,
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
@@ -1309,11 +1369,13 @@ class _DailyEditorState extends ConsumerState<_DailyEditor> {
         ..startAt = start
         ..endAt = start.add(const Duration(minutes: 1))
         ..reminderOffsetMinutes = _reminder ? 0 : -1
+        ..isAlarmStyle = _isAlarmStyle
+        ..nagMinutes = _nagMinutes
         ..recurrenceRule = ReminderRecurrence(
           kind: _repeat,
           days: _days.toList(),
         ).encode();
-      await ref.read(dailyRepositoryProvider).save(task);
+      await ref.read(dailyRepositoryProvider).save(task, scope: _editScope);
       ref.read(dailyDateProvider.notifier).state = _date;
       ref.invalidate(dailyCountsProvider);
       if (mounted) Navigator.pop(context);

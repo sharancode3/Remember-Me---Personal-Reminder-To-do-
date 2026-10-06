@@ -13,6 +13,7 @@ import 'package:remember_me/src/presentation/providers/providers.dart';
 import 'package:remember_me/src/presentation/screens/daily_home_screen.dart';
 import 'package:remember_me/src/services/daily_trail_service.dart';
 import 'package:remember_me/src/services/local_notification_service.dart';
+import 'package:remember_me/src/core/notifications/reminder_scheduler.dart';
 
 class _SilentNotifications extends LocalNotificationService {
   @override
@@ -115,7 +116,7 @@ void main() {
             }
           });
       final notifications = _SilentNotifications();
-      final repository = DailyRepository(null, notifications);
+      final repository = DailyRepository(null, InMemoryReminderScheduler(), notifications);
       final day = dayOnly(DateTime.now());
       for (final item in [
         ('Pick up groceries', 18, false),
