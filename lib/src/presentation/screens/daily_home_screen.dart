@@ -802,6 +802,25 @@ class _TaskRow extends ConsumerWidget {
                           ],
                         ),
                       ),
+                    if (task.resolvedPlaceTag != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.place, size: 12, color: Color(0xFF107C41)),
+                            const SizedBox(width: 4),
+                            Text(
+                              task.resolvedPlaceTag!,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF107C41),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -1040,6 +1059,7 @@ class _DailyEditorState extends ConsumerState<_DailyEditor> {
       widget.task == null || widget.task!.reminderOffsetMinutes >= 0;
   late bool _isAlarmStyle = widget.task?.isAlarmStyle ?? false;
   late int _nagMinutes = widget.task?.nagMinutes ?? 0;
+  late String? _placeId = widget.task?.placeId;
   bool _saving = false;
   late RepeatKind _repeat = ReminderRecurrence.decode(
     widget.task?.recurrenceRule ?? 'none',
@@ -1057,7 +1077,9 @@ class _DailyEditorState extends ConsumerState<_DailyEditor> {
   }
 
   @override
-  Widget build(BuildContext context) => SafeArea(
+  Widget build(BuildContext context) {
+    final savedPlaces = ref.watch(dailyTrailProvider).places;
+    return SafeArea(
     child: SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(
         24,
@@ -1275,6 +1297,30 @@ class _DailyEditorState extends ConsumerState<_DailyEditor> {
               onChanged: _saving ? null : (v) => setState(() => _nagMinutes = v ?? 0),
             ),
           ],
+          if (savedPlaces.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String?>(
+              isExpanded: true,
+              initialValue: savedPlaces.any((p) => p.id == _placeId) ? _placeId : null,
+              decoration: const InputDecoration(
+                labelText: 'Linked Place (Proximity alert)',
+                prefixIcon: Icon(Icons.place_outlined),
+              ),
+              items: [
+                const DropdownMenuItem<String?>(
+                  value: null,
+                  child: Text('No place linked'),
+                ),
+                ...savedPlaces.map(
+                  (p) => DropdownMenuItem<String?>(
+                    value: p.id,
+                    child: Text('${p.name} (${p.radius.toInt()}m)'),
+                  ),
+                ),
+              ],
+              onChanged: _saving ? null : (v) => setState(() => _placeId = v),
+            ),
+          ],
           if (_isOccurrence) ...[
             const SizedBox(height: 12),
             DropdownButtonFormField<EditRecurrenceScope>(
@@ -1328,6 +1374,7 @@ class _DailyEditorState extends ConsumerState<_DailyEditor> {
       ),
     ),
   );
+}
 
   Future<void> _save() async {
     final title = _title.text.trim();
@@ -1371,11 +1418,13 @@ class _DailyEditorState extends ConsumerState<_DailyEditor> {
         ..reminderOffsetMinutes = _reminder ? 0 : -1
         ..isAlarmStyle = _isAlarmStyle
         ..nagMinutes = _nagMinutes
+        ..placeId = _placeId
         ..recurrenceRule = ReminderRecurrence(
           kind: _repeat,
           days: _days.toList(),
         ).encode();
       await ref.read(dailyRepositoryProvider).save(task, scope: _editScope);
+      await ref.read(dailyRepositoryProvider).syncTasksByPlace();
       ref.read(dailyDateProvider.notifier).state = _date;
       ref.invalidate(dailyCountsProvider);
       if (mounted) Navigator.pop(context);

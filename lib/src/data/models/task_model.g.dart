@@ -78,50 +78,60 @@ const TaskModelSchema = CollectionSchema(
       name: r'nagMinutes',
       type: IsarType.long,
     ),
-    r'priority': PropertySchema(
+    r'placeId': PropertySchema(
       id: 12,
+      name: r'placeId',
+      type: IsarType.string,
+    ),
+    r'priority': PropertySchema(
+      id: 13,
       name: r'priority',
       type: IsarType.long,
     ),
     r'recurrenceRule': PropertySchema(
-      id: 13,
+      id: 14,
       name: r'recurrenceRule',
       type: IsarType.string,
     ),
     r'reminderOffsetMinutes': PropertySchema(
-      id: 14,
+      id: 15,
       name: r'reminderOffsetMinutes',
       type: IsarType.long,
     ),
+    r'resolvedPlaceTag': PropertySchema(
+      id: 16,
+      name: r'resolvedPlaceTag',
+      type: IsarType.string,
+    ),
     r'startAt': PropertySchema(
-      id: 15,
+      id: 17,
       name: r'startAt',
       type: IsarType.dateTime,
     ),
     r'status': PropertySchema(
-      id: 16,
+      id: 18,
       name: r'status',
       type: IsarType.byte,
       enumMap: _TaskModelstatusEnumValueMap,
     ),
     r'tag': PropertySchema(
-      id: 17,
+      id: 19,
       name: r'tag',
       type: IsarType.object,
       target: r'TaskTagModel',
     ),
     r'templateId': PropertySchema(
-      id: 18,
+      id: 20,
       name: r'templateId',
       type: IsarType.long,
     ),
     r'title': PropertySchema(
-      id: 19,
+      id: 21,
       name: r'title',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 20,
+      id: 22,
       name: r'updatedAt',
       type: IsarType.dateTime,
     )
@@ -183,6 +193,19 @@ const TaskModelSchema = CollectionSchema(
           caseSensitive: false,
         )
       ],
+    ),
+    r'placeId': IndexSchema(
+      id: 5619906205779282708,
+      name: r'placeId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'placeId',
+          type: IndexType.hash,
+          caseSensitive: true,
+        )
+      ],
     )
   },
   links: {},
@@ -212,7 +235,19 @@ int _taskModelEstimateSize(
     }
   }
   bytesCount += 3 + object.description.length * 3;
+  {
+    final value = object.placeId;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   bytesCount += 3 + object.recurrenceRule.length * 3;
+  {
+    final value = object.resolvedPlaceTag;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
+    }
+  }
   {
     final value = object.tag;
     if (value != null) {
@@ -248,20 +283,22 @@ void _taskModelSerialize(
   writer.writeDateTime(offsets[9], object.lastOverdueNudgeAt);
   writer.writeBool(offsets[10], object.manuallyRescheduled);
   writer.writeLong(offsets[11], object.nagMinutes);
-  writer.writeLong(offsets[12], object.priority);
-  writer.writeString(offsets[13], object.recurrenceRule);
-  writer.writeLong(offsets[14], object.reminderOffsetMinutes);
-  writer.writeDateTime(offsets[15], object.startAt);
-  writer.writeByte(offsets[16], object.status.index);
+  writer.writeString(offsets[12], object.placeId);
+  writer.writeLong(offsets[13], object.priority);
+  writer.writeString(offsets[14], object.recurrenceRule);
+  writer.writeLong(offsets[15], object.reminderOffsetMinutes);
+  writer.writeString(offsets[16], object.resolvedPlaceTag);
+  writer.writeDateTime(offsets[17], object.startAt);
+  writer.writeByte(offsets[18], object.status.index);
   writer.writeObject<TaskTagModel>(
-    offsets[17],
+    offsets[19],
     allOffsets,
     TaskTagModelSchema.serialize,
     object.tag,
   );
-  writer.writeLong(offsets[18], object.templateId);
-  writer.writeString(offsets[19], object.title);
-  writer.writeDateTime(offsets[20], object.updatedAt);
+  writer.writeLong(offsets[20], object.templateId);
+  writer.writeString(offsets[21], object.title);
+  writer.writeDateTime(offsets[22], object.updatedAt);
 }
 
 TaskModel _taskModelDeserialize(
@@ -289,21 +326,22 @@ TaskModel _taskModelDeserialize(
   object.lastOverdueNudgeAt = reader.readDateTimeOrNull(offsets[9]);
   object.manuallyRescheduled = reader.readBool(offsets[10]);
   object.nagMinutes = reader.readLong(offsets[11]);
-  object.priority = reader.readLong(offsets[12]);
-  object.recurrenceRule = reader.readString(offsets[13]);
-  object.reminderOffsetMinutes = reader.readLong(offsets[14]);
-  object.startAt = reader.readDateTime(offsets[15]);
+  object.placeId = reader.readStringOrNull(offsets[12]);
+  object.priority = reader.readLong(offsets[13]);
+  object.recurrenceRule = reader.readString(offsets[14]);
+  object.reminderOffsetMinutes = reader.readLong(offsets[15]);
+  object.startAt = reader.readDateTime(offsets[17]);
   object.status =
-      _TaskModelstatusValueEnumMap[reader.readByteOrNull(offsets[16])] ??
+      _TaskModelstatusValueEnumMap[reader.readByteOrNull(offsets[18])] ??
           TaskStatus.pending;
   object.tag = reader.readObjectOrNull<TaskTagModel>(
-    offsets[17],
+    offsets[19],
     TaskTagModelSchema.deserialize,
     allOffsets,
   );
-  object.templateId = reader.readLongOrNull(offsets[18]);
-  object.title = reader.readString(offsets[19]);
-  object.updatedAt = reader.readDateTime(offsets[20]);
+  object.templateId = reader.readLongOrNull(offsets[20]);
+  object.title = reader.readString(offsets[21]);
+  object.updatedAt = reader.readDateTime(offsets[22]);
   return object;
 }
 
@@ -345,27 +383,31 @@ P _taskModelDeserializeProp<P>(
     case 11:
       return (reader.readLong(offset)) as P;
     case 12:
-      return (reader.readLong(offset)) as P;
+      return (reader.readStringOrNull(offset)) as P;
     case 13:
-      return (reader.readString(offset)) as P;
-    case 14:
       return (reader.readLong(offset)) as P;
+    case 14:
+      return (reader.readString(offset)) as P;
     case 15:
-      return (reader.readDateTime(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 16:
+      return (reader.readStringOrNull(offset)) as P;
+    case 17:
+      return (reader.readDateTime(offset)) as P;
+    case 18:
       return (_TaskModelstatusValueEnumMap[reader.readByteOrNull(offset)] ??
           TaskStatus.pending) as P;
-    case 17:
+    case 19:
       return (reader.readObjectOrNull<TaskTagModel>(
         offset,
         TaskTagModelSchema.deserialize,
         allOffsets,
       )) as P;
-    case 18:
-      return (reader.readLongOrNull(offset)) as P;
-    case 19:
-      return (reader.readString(offset)) as P;
     case 20:
+      return (reader.readLongOrNull(offset)) as P;
+    case 21:
+      return (reader.readString(offset)) as P;
+    case 22:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -904,6 +946,71 @@ extension TaskModelQueryWhere
         upper: [upperEndAt],
         includeUpper: includeUpper,
       ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterWhereClause> placeIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'placeId',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterWhereClause> placeIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'placeId',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterWhereClause> placeIdEqualTo(
+      String? placeId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'placeId',
+        value: [placeId],
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterWhereClause> placeIdNotEqualTo(
+      String? placeId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'placeId',
+              lower: [],
+              upper: [placeId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'placeId',
+              lower: [placeId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'placeId',
+              lower: [placeId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'placeId',
+              lower: [],
+              upper: [placeId],
+              includeUpper: false,
+            ));
+      }
     });
   }
 }
@@ -1587,6 +1694,153 @@ extension TaskModelQueryFilter
     });
   }
 
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition> placeIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'placeId',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition> placeIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'placeId',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition> placeIdEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'placeId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition> placeIdGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'placeId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition> placeIdLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'placeId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition> placeIdBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'placeId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition> placeIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'placeId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition> placeIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'placeId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition> placeIdContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'placeId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition> placeIdMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'placeId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition> placeIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'placeId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition>
+      placeIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'placeId',
+        value: '',
+      ));
+    });
+  }
+
   QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition> priorityEqualTo(
       int value) {
     return QueryBuilder.apply(this, (query) {
@@ -1828,6 +2082,160 @@ extension TaskModelQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition>
+      resolvedPlaceTagIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'resolvedPlaceTag',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition>
+      resolvedPlaceTagIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'resolvedPlaceTag',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition>
+      resolvedPlaceTagEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'resolvedPlaceTag',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition>
+      resolvedPlaceTagGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'resolvedPlaceTag',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition>
+      resolvedPlaceTagLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'resolvedPlaceTag',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition>
+      resolvedPlaceTagBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'resolvedPlaceTag',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition>
+      resolvedPlaceTagStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'resolvedPlaceTag',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition>
+      resolvedPlaceTagEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'resolvedPlaceTag',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition>
+      resolvedPlaceTagContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'resolvedPlaceTag',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition>
+      resolvedPlaceTagMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'resolvedPlaceTag',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition>
+      resolvedPlaceTagIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'resolvedPlaceTag',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterFilterCondition>
+      resolvedPlaceTagIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'resolvedPlaceTag',
+        value: '',
       ));
     });
   }
@@ -2367,6 +2775,18 @@ extension TaskModelQuerySortBy on QueryBuilder<TaskModel, TaskModel, QSortBy> {
     });
   }
 
+  QueryBuilder<TaskModel, TaskModel, QAfterSortBy> sortByPlaceId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'placeId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterSortBy> sortByPlaceIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'placeId', Sort.desc);
+    });
+  }
+
   QueryBuilder<TaskModel, TaskModel, QAfterSortBy> sortByPriority() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'priority', Sort.asc);
@@ -2402,6 +2822,19 @@ extension TaskModelQuerySortBy on QueryBuilder<TaskModel, TaskModel, QSortBy> {
       sortByReminderOffsetMinutesDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'reminderOffsetMinutes', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterSortBy> sortByResolvedPlaceTag() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'resolvedPlaceTag', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterSortBy>
+      sortByResolvedPlaceTagDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'resolvedPlaceTag', Sort.desc);
     });
   }
 
@@ -2616,6 +3049,18 @@ extension TaskModelQuerySortThenBy
     });
   }
 
+  QueryBuilder<TaskModel, TaskModel, QAfterSortBy> thenByPlaceId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'placeId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterSortBy> thenByPlaceIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'placeId', Sort.desc);
+    });
+  }
+
   QueryBuilder<TaskModel, TaskModel, QAfterSortBy> thenByPriority() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'priority', Sort.asc);
@@ -2651,6 +3096,19 @@ extension TaskModelQuerySortThenBy
       thenByReminderOffsetMinutesDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'reminderOffsetMinutes', Sort.desc);
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterSortBy> thenByResolvedPlaceTag() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'resolvedPlaceTag', Sort.asc);
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QAfterSortBy>
+      thenByResolvedPlaceTagDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'resolvedPlaceTag', Sort.desc);
     });
   }
 
@@ -2786,6 +3244,13 @@ extension TaskModelQueryWhereDistinct
     });
   }
 
+  QueryBuilder<TaskModel, TaskModel, QDistinct> distinctByPlaceId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'placeId', caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<TaskModel, TaskModel, QDistinct> distinctByPriority() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'priority');
@@ -2804,6 +3269,14 @@ extension TaskModelQueryWhereDistinct
       distinctByReminderOffsetMinutes() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'reminderOffsetMinutes');
+    });
+  }
+
+  QueryBuilder<TaskModel, TaskModel, QDistinct> distinctByResolvedPlaceTag(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'resolvedPlaceTag',
+          caseSensitive: caseSensitive);
     });
   }
 
@@ -2923,6 +3396,12 @@ extension TaskModelQueryProperty
     });
   }
 
+  QueryBuilder<TaskModel, String?, QQueryOperations> placeIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'placeId');
+    });
+  }
+
   QueryBuilder<TaskModel, int, QQueryOperations> priorityProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'priority');
@@ -2939,6 +3418,13 @@ extension TaskModelQueryProperty
       reminderOffsetMinutesProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'reminderOffsetMinutes');
+    });
+  }
+
+  QueryBuilder<TaskModel, String?, QQueryOperations>
+      resolvedPlaceTagProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'resolvedPlaceTag');
     });
   }
 

@@ -70,6 +70,7 @@
         </receiver>
         <receiver android:name=".NotificationActionReceiver" android:exported="false" />
         <receiver android:name=".DailyTrailWatchdogReceiver" android:exported="false" />
+        <receiver android:name=".GeofenceBroadcastReceiver" android:exported="false" />
         <service android:name=".DailyTrailService" android:exported="false" android:foregroundServiceType="location" android:stopWithTask="false" />
         <service android:name=".FocusGuardService" android:label="Remember Me Focus" android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" android:exported="true">
             <intent-filter><action android:name="android.accessibilityservice.AccessibilityService" /></intent-filter>

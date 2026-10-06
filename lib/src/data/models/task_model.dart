@@ -52,6 +52,19 @@ class TaskModel {
   bool isAlarmStyle = false;
   int nagMinutes = 0;
 
+  @Index()
+  String? placeId;
+
+  String? get resolvedPlaceTag {
+    if (placeId != null && placeId!.trim().isNotEmpty) return placeId!.trim();
+    final pattern = RegExp(r'[@#]([a-zA-Z0-9_\-]+)');
+    final titleMatch = pattern.firstMatch(title);
+    if (titleMatch != null) return titleMatch.group(1);
+    final descMatch = pattern.firstMatch(description);
+    if (descMatch != null) return descMatch.group(1);
+    return null;
+  }
+
   List<ChecklistItemModel> checklist = [];
   TaskTagModel? tag;
 

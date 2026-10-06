@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:isar/isar.dart';
 import '../local/isar_service.dart';
 import '../models/task_model.dart';
@@ -213,6 +216,7 @@ class DailyRepository {
       ..completionPercentage = occ.status == OccurrenceStatus.completed ? 100 : 0
       ..isAlarmStyle = parent.isAlarmStyle
       ..nagMinutes = parent.nagMinutes
+      ..placeId = parent.placeId
       ..tag = parent.tag
       ..checklist = parent.checklist
       ..isArchived = parent.isArchived || occ.status == OccurrenceStatus.skipped;
@@ -802,6 +806,39 @@ class DailyRepository {
       alarmStyles: alarmStyles,
       nagMinutes: nagMinutes,
     );
+
+    // 4. Sync linked tasks by place for native geofencing/arrival alerts
+    await syncTasksByPlace();
+  }
+
+  Future<void> syncTasksByPlace() async {
+    try {
+      final isar = database?.isar;
+      final pendingTasks = isar != null
+          ? await isar.taskModels.filter().statusEqualTo(TaskStatus.pending).and().isArchivedEqualTo(false).findAll()
+          : _memory.where((t) => t.status == TaskStatus.pending && !t.isArchived).toList();
+
+      final map = <String, List<String>>{};
+      for (final t in pendingTasks) {
+        final tag = t.resolvedPlaceTag;
+        if (tag != null && tag.isNotEmpty) {
+          map.putIfAbsent(tag, () => []).add(t.title);
+          map.putIfAbsent(tag.toLowerCase(), () => []).add(t.title);
+          final cleanTag = tag.replaceAll('@', '').toLowerCase();
+          if (cleanTag.isNotEmpty) {
+            map.putIfAbsent(cleanTag, () => []).add(t.title);
+          }
+        }
+      }
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+        await const MethodChannel('remember_me/daily').invokeMethod<void>(
+          'syncTasksByPlace',
+          {'tasksByPlace': jsonEncode(map)},
+        );
+      }
+    } catch (e, st) {
+      _logger.warning('Failed to sync tasks by place', e, st);
+    }
   }
 
   Future<Map<DateTime, int>> monthCounts(DateTime month) async {

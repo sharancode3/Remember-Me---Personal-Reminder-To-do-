@@ -121,7 +121,14 @@ class MainActivity : FlutterActivity() {
                         "savePlaces" -> {
                             val data = call.argument<String>("data") ?: "[]"
                             JSONArray(data)
-                            preferences.edit().putString("places", data).apply(); result.success(null)
+                            preferences.edit().putString("places", data).apply()
+                            NativeGeofenceManager.registerGeofences(this)
+                            result.success(null)
+                        }
+                        "syncTasksByPlace" -> {
+                            val data = call.argument<String>("tasksByPlace") ?: "{}"
+                            preferences.edit().putString("tasks_by_place", data).apply()
+                            result.success(null)
                         }
                         "googleConfigured" -> result.success(packageManager.getApplicationInfo(packageName, android.content.pm.PackageManager.GET_META_DATA).metaData?.getString("com.google.android.geo.API_KEY")?.isNotBlank() == true)
                         "focusGuardEnabled" -> result.success(focusGuardEnabled())
@@ -154,6 +161,7 @@ class MainActivity : FlutterActivity() {
                         "consumeNavigation" -> { val tab = intent?.getStringExtra("dailyTab"); intent?.removeExtra("dailyTab"); result.success(tab) }
                         "trackingEnabled" -> result.success(preferences.getBoolean("tracking", false))
                         "startTracking" -> {
+                            NativeGeofenceManager.removeGeofences(this)
                             val intent = Intent(this, DailyTrailService::class.java)
                             if (Build.VERSION.SDK_INT >= 26) startForegroundService(intent) else startService(intent)
                             preferences.edit().putBoolean("tracking", true).putLong("trail_heartbeat", System.currentTimeMillis()).apply()
@@ -164,6 +172,7 @@ class MainActivity : FlutterActivity() {
                             preferences.edit().putBoolean("tracking", false).apply()
                             DailyTrailWatchdogReceiver.cancel(this)
                             stopService(Intent(this, DailyTrailService::class.java))
+                            NativeGeofenceManager.registerGeofences(this)
                             result.success(null)
                         }
                         "trackingStatus" -> result.success(mapOf("error" to preferences.getString("trackingError", null)))

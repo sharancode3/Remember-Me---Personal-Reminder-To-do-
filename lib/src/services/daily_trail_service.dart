@@ -75,11 +75,13 @@ class SavedPlace {
     this.radius = 100,
     this.notify = false,
     this.message = '',
+    this.dwellSeconds = 90,
   });
   final String id, name, message;
   final LatLng point;
   final double radius;
   final bool notify;
+  final int dwellSeconds;
   Map<String, dynamic> toJson() => {
     'id': id,
     'name': name,
@@ -88,6 +90,7 @@ class SavedPlace {
     'radius': radius,
     'notify': notify,
     'message': message,
+    'dwellSeconds': dwellSeconds,
   };
   factory SavedPlace.fromJson(Map<String, dynamic> data) => SavedPlace(
     id: data['id'] as String,
@@ -99,6 +102,7 @@ class SavedPlace {
     radius: (data['radius'] as num).toDouble(),
     notify: data['notify'] == true,
     message: data['message'] as String? ?? '',
+    dwellSeconds: (data['dwellSeconds'] as num?)?.toInt() ?? 90,
   );
 }
 
