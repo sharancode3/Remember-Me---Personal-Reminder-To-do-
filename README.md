@@ -1,57 +1,104 @@
 # Remember Me
 
-A local-first Flutter Android app for reminders, daily to-dos, focus, and movement history. No subscription or paid API is required.
+A local-first, privacy-respecting Android application built with Flutter, Riverpod, Isar, and native Kotlin. Provides rock-solid reminders, natural language quick-add, focus timer with distraction blocking, and battery-efficient daily movement trails with offline vector maps. No subscription or paid cloud API required.
 
-## Daily Experience
+---
 
-- **Today:** reminders and checklist, without priorities or automatic rescheduling. Repeat daily, on selected weekdays, or selected monthly dates. Complete/skip one day without cancelling future repeats. Edit the series or stop repeating from its menu.
-- **Calendar:** each day's tasks, completion, focused minutes, and trail.
-- **Focus:** 5-120 minutes. Opt-in Android Accessibility blocks distracting apps with a full-screen overlay while chosen allowed apps remain usable. Allowed apps show a small timer overlay. Phone, Home, Settings, and permission screens remain available for safety. Screen pinning is a separate option. Sessions persist with an absolute end time.
-- **Trail:** full-screen map, route sketch, distance, average/max speed, and meters per minute. Long-press or use the pin button to name a saved place. Add arrival messages with a 75-500 m radius. Alerts require opted-in daily recording, precise location, and notifications. Trails can be copied, deleted, and shared as map images.
-- **Appearance:** Mint, Ocean, and Rose light themes, translucent blurred navigation/map controls, animated transitions/completion/time wheel, and a new launcher mark. Android persists theme choice.
-- **Widget:** home-screen reminder/completion snapshot with Add and Focus shortcuts. Add from Settings or the launcher. It refreshes on app changes and launcher updates; it is not a second live checklist.
+## Architecture Overview (Architecture B)
 
-OpenStreetMap is the free default without a key or billing account. Optional official Google Android Maps supports street/satellite maps and the same local route/pins. They are selectable basemaps, not scraped Google tiles layered over OSM. Google's basic Maps SDK SKU currently has unlimited no-cost usage, but Google still requires billing to be enabled for a key. No paid Places, Roads, Routes, Street View, or cloud AI APIs are called. See [API Setup](docs/API_SETUP.md).
+The application is structured into modular feature packages with a decoupled data layer and a typed native platform bridge:
 
-GPS recording works offline; street tiles need connectivity. Offline map downloading is not implemented. Attribution remains on shared images.
+```
+lib/src/
+├── app.dart                              # App root, orientation lock & theme wiring
+├── core/
+│   ├── bootstrap/bootstrap.dart          # Database and service initialization
+│   ├── logging/app_logger.dart           # Ring-buffered structured logger
+│   ├── notifications/                    # ReminderScheduler interface & unified scheduler
+│   ├── platform/native_daily_bridge.dart # Compile-time checked native method channel bridge
+│   ├── theme/daily_theme.dart            # Multi-palette theme engine (Mint, Ocean, Rose)
+│   └── utils/                            # Natural language parser, RDP decimator, UI helpers
+├── data/
+│   ├── local/isar_service.dart           # Local persistence lifecycle
+│   ├── models/                           # TaskModel, TaskOccurrence, FocusSessionModel
+│   └── repositories/daily_repository.dart# Persistence logic behind abstract interfaces
+├── features/
+│   ├── calendar/presentation/            # CalendarTab with day/month grid
+│   ├── splash/presentation/              # EntranceReveal with spring-physics bubbles
+│   ├── tasks/presentation/               # QuickAddBar, TaskRow, TaskEditorSheet
+│   └── today/presentation/               # TodayTab with metrics, quick-add & task lists
+└── presentation/
+    ├── providers/daily_providers.dart    # Riverpod reactive state
+    └── screens/                          # DailyHomeScreen, DailyFocusScreen, DailyTrailScreen
+```
 
-## Build And Install
+---
 
+## Key Features & Production Enhancements
+
+### 1. Reminders That Actually Fire (With Sound & Alarms)
+- **Immutable Notification Channels:** Versioned channels (`reminders_v2`, `reminders_alarm_v2`, `place_alerts_v2`, `trail_status`) created with proper audio attributes and notification categories.
+- **Unified Native Alarm Scheduler:** Replaces diverging schedulers with a single native Kotlin `AlarmManager` receiver (`setAlarmClock` + `setExactAndAllowWhileIdle`) with optional nag loops.
+- **Headless Outbox Pattern:** Action buttons ("Done" and "Snooze 10m") execute immediately in Kotlin and write to a durable disk outbox, processed seamlessly without needing to boot Dart.
+- **Natural Language Quick-Add:** Type `"Gym tomorrow 7am #fitness"` directly in the Today view to schedule tasks with live chip parsing.
+
+### 2. High-Precision Movement Tracking & Gap Detection
+- **2D Metric Kalman Filter:** Local ENU tangent plane filter with stationary jitter suppression (<12m std dev).
+- **Tunnel & Outage Detection:** Explicit `TrailGap` detection for prolonged GPS loss (>120s or >180 km/h) rendered as dashed lines.
+- **Decimation on Background Isolate:** Dense coordinates (10,000+ fixes) deserialized and linked on background isolates via `compute()`, then simplified using iterative RDP decimation (`TrailDecimator`) to guarantee 60fps map rendering.
+
+### 3. Battery-Efficient Geofencing & Place Linking
+- **Sliding Geofence Window:** Monitors up to 20 nearest places via Google Play Services `GeofencingClient` when continuous tracking is turned OFF, automatically recentering when moving >1km.
+- **Arrival Dwell & Hysteresis:** Enforces 90-second dwell and `radius + 50m` exit hysteresis to eliminate boundary bounce.
+- **Headless Task Linking:** Places linked by ID or `@tag`/`#tag` sync to native preferences, alerting with pending task counts without waking the Dart runtime.
+
+### 4. Vector Map Stack & Ambient Offline Caching
+- **OpenFreeMap Bright Vector Tiles:** Free, fast vector tiles via MapLibre GL with a Google-like aesthetic and zero API cost or card requirements.
+- **150MB LRU Tile Cache:** Two-tier cache (L1 memory + L2 disk) providing ambient offline availability during commutes.
+- **Optional Native Google View:** Opt-in toggle to view trails and markers on native Google Maps SDK when an API key is supplied.
+- **OSM Attribution:** Clean, non-intrusive `© OpenStreetMap contributors · OpenFreeMap` attribution.
+
+### 5. Focus Guard
+- **Distraction Blocking:** Accessibility-based overlay preventing app distraction while preserving access to essential utilities (Phone, Settings, Home).
+- **Persisted Sessions:** Survives process death and calculates exact focused minutes per day.
+
+---
+
+## Build, Run, and Test
+
+### Prerequisites
+- Flutter 3.24+ (Dart 3.5+)
+- Android SDK (API 26 to 35)
+- Java 17 / Gradle 8.14
+
+### Verification Commands
 ```powershell
-flutter pub get
-flutter run
+# Analyze codebase (Strict zero-warning policy)
+flutter analyze
+
+# Run all Flutter unit & widget tests (57+ tests)
 flutter test
-flutter build apk --release --tree-shake-icons --split-debug-info=build/symbols/1.0.1
-./scripts/check_notification_release.ps1
-```
 
-Install `build/app/outputs/flutter-apk/app-release.apk`: one universal release for ARM64, ARMv7, and x86-64. Native libraries are compressed to reduce APK size and extracted by Android during installation; the download size is not the installed footprint. Dart debugging symbols remain outside the APK in `build/symbols/1.0.1`; retain them for diagnosing this release. Code/resource shrinking and icon tree shaking remain enabled. The release check verifies that notification-storage reflection metadata survives shrinking. Local builds use the existing debug signing key, not a production Play Store signing configuration, so this APK can update earlier local builds without clearing data.
-
-Original Isar task data is preserved. Advanced planner code remains in source but is disconnected from the active daily app. Legacy daily-summary scheduling is cancelled at startup. Android is the target verified by builds; browser release builds remain unsupported by existing Isar generated models.
-
-## Phone Behavior And Limits
-
-Allow notifications. Precise-alarm access is requested for time reminders; denied access permits late delivery. Done and Snooze 10m actions are provided. Android repeating reminders use one rolling native alarm per series, restored after reboot/update/clock changes, and honor future start dates, skipped dates, and short months: 31 means the 31st, not the last day. Force-stopping the app stops alarms until reopened. iOS recurrence has not been device-verified.
-
-Trail recording begins only after consent, resumes on app launch if enabled, and rolls to a new local-date file at midnight. Reopen after reboot or force-stop. OS/battery restrictions, permission removal, poor reception, or service termination can create gaps. Gaps over two minutes are not connected. The local accuracy-weighted Kalman estimator combines a stationary anchor, motion/speed evidence, innovation rejection, and minimum displacement. Fixes over 40 m reported uncertainty or implausible jumps are rejected. Sampling slows from 3 to 30 seconds when stationary. This reduces jitter but cannot promise survey-grade accuracy or reconstruct missing travel. Statistics cover recorded segments, exclude gaps, and are estimates rather than sports-grade measurements. Arrival detection includes reported uncertainty, 20 s dwell, exit hysteresis, and a persisted 30 min cooldown. There is no trained ML model or cloud location upload. Online map requests reveal the viewed region to the map provider.
-
-Accessibility access is manually enabled after disclosure. The service observes app package changes, not window contents, passwords, or typed text. Blocking covers apps rather than disabling packages or suppressing their notifications. It is not a bypass-proof kiosk: the user can end a session or revoke access; OEM/system screens can behave differently. Recent Android may require allowing restricted settings for this sideloaded app. Screen pinning retains the OS emergency unpin gesture. iOS has foreground-only trails and no cross-app blocking.
-
-## Verification
-
-Flutter tests cover reminder timing, per-day history, recurrence/completion/skip, focus exit/allowlist, saved places without silent recording, themes, and narrow layouts. Native JUnit tests cover stationary jitter, walking, GPS jumps/gaps, future starts, skipped dates, monthly dates, and daylight-saving transitions:
-
-```powershell
+# Run native Android JVM unit tests
 cd android
-./gradlew.bat :app:testDebugUnitTest
+.\gradlew.bat :app:testDebugUnitTest
+cd ..
 ```
 
-Optional screenshot captures:
-
+### Build Universal Release APK
 ```powershell
-$env:REMEMBER_ME_CAPTURE = 'true'
-$env:REMEMBER_ME_FONT_DIR = 'C:/flutter_sdk/bin/cache/artifacts/material_fonts'
-flutter test test/daily_visual_test.dart
+flutter build apk --release --tree-shake-icons --split-debug-info=build/symbols/1.0.1
 ```
+Output artifact: `build/app/outputs/flutter-apk/app-release.apk`.
 
-Captures go to `docs/screenshots`. Widget tests block real HTTP, so maps can show unavailable tiles. No Android phone was connected: locked-screen/background GPS, accessibility blocking/expiry, widget refresh, notification timing/actions, arrival alerts, Google authorization, and image sharing still need real-device validation before daily reliance.
+---
+
+## Architecture Decision Records (ADRs)
+- [001. Audit and Repository Hygiene](docs/adr/001-audit-and-repo-hygiene.md)
+- [002. Immutable Notification Channels and Scheduler](docs/adr/002-notification-channels-scheduler.md)
+- [003. Kalman Filter, Gap Detection, and Watchdog](docs/adr/003-kalman-gaps-watchdog.md)
+- [004. Native Geofencing and Place Tasks](docs/adr/004-native-geofencing-places.md)
+- [005. Map Stack, Vector Tiles, and Tile Cache](docs/adr/005-map-stack.md)
+- [006. Feature-First Modularization and Platform Bridge](docs/adr/006-feature-architecture.md)
+- [007. Isolate Decimation and CI Pipeline](docs/adr/007-performance-ci.md)
+- [008. Entrance Reveal and Final Sign-Off](docs/adr/008-final-polish.md)

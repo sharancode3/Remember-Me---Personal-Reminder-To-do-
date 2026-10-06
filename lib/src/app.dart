@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/theme/daily_theme.dart';
+import 'features/splash/presentation/entrance_reveal.dart';
 import 'presentation/screens/daily_home_screen.dart';
 
 class RememberMeApp extends ConsumerWidget {
@@ -21,7 +22,7 @@ class RememberMeApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: DailyTheme.build(ref.watch(dailyStyleProvider)),
       themeMode: ThemeMode.light,
-      home: const DailyHomeScreen(),
+      home: const EntranceReveal(child: DailyHomeScreen()),
     );
   }
 }
