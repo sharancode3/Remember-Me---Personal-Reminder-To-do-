@@ -182,7 +182,7 @@ class _DailyHomeScreenState extends ConsumerState<DailyHomeScreen>
       ref.read(dailyDateProvider.notifier).state = dayOnly(day);
       if (!_focusActive) _selectTab(0);
     } catch (e) {
-      if (mounted) showMessage(context, readableError(e));
+      debugPrint('Repeat action intent consumption error: $e');
     }
   }
 

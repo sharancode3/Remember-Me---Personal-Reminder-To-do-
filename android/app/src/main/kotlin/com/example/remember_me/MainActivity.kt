@@ -41,15 +41,23 @@ class MainActivity : FlutterActivity() {
                             val outbox = NotificationActionReceiver.getPendingOutbox(this)
                             result.success(outbox)
                         }
+                        "drainOutbox" -> {
+                            val outbox = NotificationActionReceiver.getPendingOutbox(this)
+                            val array = JSONArray()
+                            for (item in outbox) {
+                                array.put(JSONObject(item))
+                            }
+                            result.success(array.toString())
+                        }
                         "acknowledgeOutboxActions" -> {
                             val uuids = call.argument<List<String>>("uuids") ?: emptyList()
                             NotificationActionReceiver.acknowledge(this, uuids)
                             result.success(null)
                         }
                         "scheduleAlarm" -> {
-                            val id = call.argument<Number>("occurrenceId")!!.toLong()
-                            val title = call.argument<String>("title")!!
-                            val triggerAt = call.argument<Number>("triggerAt")!!.toLong()
+                            val id = (call.argument<Number>("occurrenceId") ?: call.argument<Number>("id"))?.toLong() ?: 0L
+                            val title = call.argument<String>("title") ?: ""
+                            val triggerAt = (call.argument<Number>("triggerAt") ?: call.argument<Number>("triggerAtMillis"))?.toLong() ?: 0L
                             val isAlarmStyle = call.argument<Boolean>("isAlarmStyle") ?: false
                             val nagMinutes = call.argument<Int>("nagMinutes") ?: 0
                             val nagMax = call.argument<Int>("nagMax") ?: 0
@@ -57,7 +65,7 @@ class MainActivity : FlutterActivity() {
                             result.success(null)
                         }
                         "cancelAlarm" -> {
-                            val id = call.argument<Number>("occurrenceId")!!.toLong()
+                            val id = (call.argument<Number>("occurrenceId") ?: call.argument<Number>("id"))?.toLong() ?: 0L
                             UnifiedAlarmScheduler.cancel(this, id)
                             result.success(null)
                         }
@@ -159,6 +167,30 @@ class MainActivity : FlutterActivity() {
                             } else result.success(false)
                         }
                         "consumeNavigation" -> { val tab = intent?.getStringExtra("dailyTab"); intent?.removeExtra("dailyTab"); result.success(tab) }
+                        "consumeRepeatAction" -> {
+                            val id = intent?.getLongExtra("repeatActionId", -1L) ?: -1L
+                            val action = intent?.getStringExtra("repeatAction")
+                            val day = intent?.getStringExtra("repeatDay")
+                            if (id != -1L && action != null) {
+                                intent?.removeExtra("repeatActionId")
+                                intent?.removeExtra("repeatAction")
+                                intent?.removeExtra("repeatDay")
+                                result.success(mapOf("id" to id, "action" to action, "day" to day))
+                            } else {
+                                result.success(null)
+                            }
+                        }
+                        "scheduleRepeat" -> {
+                            result.success(null)
+                        }
+                        "cancelRepeat" -> {
+                            val id = (call.argument<Number>("id") ?: 0).toLong()
+                            UnifiedAlarmScheduler.cancel(this, id)
+                            result.success(null)
+                        }
+                        "skipRepeat" -> {
+                            result.success(null)
+                        }
                         "trackingEnabled" -> result.success(preferences.getBoolean("tracking", false))
                         "startTracking" -> {
                             NativeGeofenceManager.removeGeofences(this)

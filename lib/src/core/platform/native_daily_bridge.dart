@@ -175,13 +175,21 @@ class NativeDailyBridge {
   }
 
   Future<String?> consumeNavigation() async {
-    return await _channel.invokeMethod<String>('consumeNavigation');
+    try {
+      return await _channel.invokeMethod<String>('consumeNavigation');
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<Map<String, dynamic>?> consumeRepeatAction() async {
-    return await _channel.invokeMapMethod<String, dynamic>(
-      'consumeRepeatAction',
-    );
+    try {
+      return await _channel.invokeMapMethod<String, dynamic>(
+        'consumeRepeatAction',
+      );
+    } catch (_) {
+      return null;
+    }
   }
 
   // --- Focus Guard ---
