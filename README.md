@@ -1,299 +1,349 @@
-# Remember Me 🧭
+# Remember Me
 
-<div align="center">
+A sovereign, local-first Android personal productivity and spatial awareness system built with Flutter, Riverpod, Isar Database, and native Kotlin services.
 
-![Platform](https://img.shields.io/badge/Platform-Android%208.0%2B%20(API%2026--35)-3DDC84?style=for-the-badge&logo=android&logoColor=white)
-![Flutter](https://img.shields.io/badge/Flutter-3.24%2B-02569B?style=for-the-badge&logo=flutter&logoColor=white)
-![Dart](https://img.shields.io/badge/Dart-3.5%2B-0175C2?style=for-the-badge&logo=dart&logoColor=white)
-![Database](https://img.shields.io/badge/Isar%20Database-Local--First-4A90E2?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
-![Code Quality](https://img.shields.io/badge/flutter%20analyze-0%20warnings-brightgreen?style=for-the-badge)
-
-<p align="center">
-  <strong>A sovereign, local-first daily productivity and spatial awareness application.</strong><br>
-  Rock-solid alarms, natural language task capture, distraction-free focus guarding, and battery-efficient daily movement trails with offline vector maps.<br>
-  <em>No subscriptions. No cloud telemetry. No accounts required.</em>
-</p>
-
-[**Download Latest APK (v1.0.1)**](https://github.com/sharancode3/Remember-Me---Personal-Reminder-To-do-/releases/download/v1.0.1/Remember-Me.apk) • [**Architecture Records**](#-architecture-decision-records-adrs) • [**Feature Tour**](#-core-capabilities) • [**Build Guide**](#-building--verifying)
-
-</div>
+The system combines deterministic hardware-level alarm dispatch, natural language task decomposition, distraction mitigation via accessibility APIs, and battery-efficient dead-reckoning movement tracking with offline vector cartography. All data persistence is strictly local, with zero cloud dependencies, zero external telemetry, and no mandatory proprietary APIs.
 
 ---
 
-## 📖 Table of Contents
+## Table of Contents
 
-- [Overview](#-overview)
-- [Quick Download & Installation](#-quick-download--installation)
-- [Core Capabilities](#-core-capabilities)
-- [System Architecture](#-system-architecture)
-- [Directory Structure](#-directory-structure)
-- [Technical Highlights & Engineering Deep Dives](#-technical-highlights--engineering-deep-dives)
-- [Permissions & Privacy](#-permissions--privacy-model)
-- [Building & Verifying](#-building--verifying)
-- [Architecture Decision Records (ADRs)](#-architecture-decision-records-adrs)
-- [License](#-license)
-
----
-
-## 🔭 Overview
-
-Most modern productivity tools suffer from cloud dependence, aggressive subscription models, battery drain, and unreliable reminder dispatch due to aggressive Android Doze and OEM background killing.
-
-**Remember Me** is engineered as an industry-grade, local-first personal companion designed from the hardware up:
-- **Never miss a deadline:** Hardware-backed exact alarms fire even in Doze mode or across device reboots.
-- **Capture at the speed of thought:** Natural language parser translates freeform speech or text into scheduled reminders.
-- **Stay in deep work:** Accessibility-powered focus blocker suppresses distractions while preserving critical safety tools.
-- **Trace your daily steps:** Continuous, battery-aware dead-reckoning movement trail with 2D metric Kalman filtering and offline vector cartography.
-- **100% Data Sovereignty:** Everything is stored locally on device via Isar Database. Zero telemetry, zero analytics, zero external API prerequisites.
+- [System Architecture](#system-architecture)
+  - [High-Level Component Topology](#high-level-component-topology)
+  - [Headless Outbox Synchronization Sequence](#headless-outbox-synchronization-sequence)
+  - [Movement Tracking and Filtering Pipeline](#movement-tracking-and-filtering-pipeline)
+  - [Rolling Exact Alarm Dispatch Pipeline](#rolling-exact-alarm-dispatch-pipeline)
+- [Core Subsystems](#core-subsystems)
+  - [1. Temporal Planning and Natural Language Capture](#1-temporal-planning-and-natural-language-capture)
+  - [2. Hardware-Reliable Alarm Scheduling](#2-hardware-reliable-alarm-scheduling)
+  - [3. High-Precision Daily Trail and Offline Cartography](#3-high-precision-daily-trail-and-offline-cartography)
+  - [4. Autonomous Geofencing and Place Linking](#4-autonomous-geofencing-and-place-linking)
+  - [5. Focus Guard Subsystem](#5-focus-guard-subsystem)
+- [Codebase Organization](#codebase-organization)
+- [Security, Privacy, and Android Permissions](#security-privacy-and-android-permissions)
+- [Build, Test, and Verification](#build-test-and-verification)
+- [Binary Releases and Deployment](#binary-releases-and-deployment)
+- [Architecture Decision Records (ADR)](#architecture-decision-records-adr)
+- [License](#license)
 
 ---
 
-## 📲 Quick Download & Installation
+## System Architecture
 
-The production release is pre-compiled with full R8 code optimization, resource shrinking, and bytecode minification:
+The Remember Me architecture implements a strict boundary separation between declarative UI presentation, reactive state management, repository-abstracted local persistence, and native Android operating system services.
 
-| Asset | Details | Direct Download |
-| :--- | :--- | :--- |
-| **`Remember-Me.apk`** | Universal Release (v1.0.1, ~37.5 MB) | [⬇️ Download Direct APK](https://github.com/sharancode3/Remember-Me---Personal-Reminder-To-do-/releases/download/v1.0.1/Remember-Me.apk) |
+### High-Level Component Topology
 
-> [!TIP]
-> **Installation on Android:**  
-> 1. Download `Remember-Me.apk` to your Android device.  
-> 2. Tap the downloaded notification or open it via your Files app.  
-> 3. If prompted, enable **"Allow from this source"** for your browser/file manager.  
-> 4. Tap **Install** and launch Remember Me!
+```mermaid
+graph TD
+    subgraph ClientPresentation ["Presentation Layer (Flutter / Dart)"]
+        TodayView["Today Dashboard & Quick-Add"]
+        CalendarView["Temporal Matrix & Calendar"]
+        FocusView["Focus Guard Controller"]
+        TrailView["Daily Trail Map Viewport"]
+    end
+
+    subgraph StateManagement ["State Management Layer (Riverpod 2.6)"]
+        DailyProviders["Daily State Providers"]
+        DailyTrailService["Daily Trail State Engine"]
+        FocusController["Focus Session State Machine"]
+    end
+
+    subgraph DomainCore ["Domain & Processing Layer"]
+        NLParser["Natural Language Tokenizer"]
+        RDPDecimator["Ramer-Douglas-Peucker Decimator"]
+        TileCacheEngine["Dual-Tier LRU Tile Cache"]
+        RingLogger["Circular Ring-Buffer Logger"]
+    end
+
+    subgraph DataPersistence ["Persistence Layer (Local-First)"]
+        RepositoryInterface["Repository Abstraction (IDailyRepository)"]
+        IsarEngine["Isar 3.x Embedded Database"]
+        DiskSchema["Local Relational / Document Store"]
+    end
+
+    subgraph InteropBridge ["Platform Interoperability Bridge"]
+        MethodBridge["Typed NativeDailyBridge (MethodChannel)"]
+    end
+
+    subgraph AndroidNative ["Native Platform Layer (Android / Kotlin)"]
+        NativeAlarmManager["AlarmReceiver (AlarmManager API)"]
+        TrackingService["TrackingForegroundService (FusedLocation)"]
+        GeofenceClient["GeofenceReceiver (GeofencingClient)"]
+        OutboxQueue["OutboxManager (Persistent Disk Queue)"]
+        AccessibilityService["AccessibilityFocusService (Window Monitor)"]
+    end
+
+    ClientPresentation --> StateManagement
+    StateManagement --> DomainCore
+    StateManagement --> DataPersistence
+    DataPersistence --> RepositoryInterface
+    RepositoryInterface --> IsarEngine
+    IsarEngine --> DiskSchema
+    StateManagement --> InteropBridge
+    InteropBridge <--> MethodBridge
+    MethodBridge <--> AndroidNative
+
+    OutboxQueue -->|Reconcile on App Launch| MethodBridge
+    NativeAlarmManager -->|Hardware RTC Wakeup| OutboxQueue
+    TrackingService -->|Persist Binary Fixes| DiskSchema
+```
 
 ---
 
-## ⚡ Core Capabilities
+### Headless Outbox Synchronization Sequence
 
-### 📅 1. Daily Planner & Natural Language Quick-Add
-- **Fluid Task Capture:** Type naturally (e.g., `Submit report tomorrow 4pm #work !high`) to instantly populate dates, times, tags, and priorities.
-- **Automated Rollover:** Incomplete tasks carry over gracefully past midnight without manual rescheduling.
-- **Interactive Calendar:** Seamless day-by-day and month-by-month exploration with recurrence calculation.
+To avoid the memory and cold-start latency of booting the Dart VM for background notification quick-actions (such as marking a task as "Done" or triggering "Snooze 10m"), the system uses an atomic disk outbox pattern:
 
-### 🔔 2. Hardware-Reliable Reminders & Alarm Clock
-- **Doze-Proof Dispatch:** Native Kotlin `AlarmManager` integration utilizing `setAlarmClock()` and `setExactAndAllowWhileIdle()` to ensure on-second arrival.
-- **Versioned Audio Channels:** Immutable Android 8+ notification channels (`reminders_v2`, `reminders_alarm_v2`, `place_alerts_v2`, `trail_status`) configured with high importance and audio attributes.
-- **Headless Outbox Pattern:** Notification quick actions (**"Done"** / **"Snooze 10m"**) persist directly to a disk-backed queue from native Kotlin without waking up the heavy Flutter engine.
-- **Rolling Reconciler:** Maintains a sliding 14-day scheduling window ensuring recurrence calculation never overflows system alarm limits.
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant AndroidSystem as Android Notification System
+    participant KotlinReceiver as Native AlarmReceiver (Kotlin)
+    participant OutboxDisk as Disk Outbox (remember_me_outbox.json)
+    participant FlutterBridge as NativeDailyBridge (Dart)
+    participant IsarDB as Isar Database
 
-### 🗺️ 3. Ambient Daily Trail & Vector Maps
-- **2D Metric Kalman Filtering:** Converts GPS coordinates to local ENU tangent plane metrics, eliminating urban multipath jitter and stationary drift (<12m std dev).
-- **Metro & Tunnel Gap Detection:** Intelligently tags prolonged GPS loss (>120s or >180 km/h) as explicit `TrailGap` dashed paths rather than erroneous teleportation lines.
-- **Dual Vector Map Stack:**
-  - **OpenFreeMap Bright Vector Tiles:** Free, fast vector tiles via MapLibre GL with clean Google-like styling. No credit card, no billing account, and zero API costs.
-  - **Optional Google Maps View:** Seamless toggle to render identical trails on native Google Maps SDK when an optional API key is configured.
-- **Buttery 60–120 FPS Interaction:** Ramer-Douglas-Peucker (RDP) polyline decimation (`TrailDecimator`) and widget memoization compress vertices by 70–85% without geometric distortion.
-- **Two-Tier LRU Tile Cache:** Bounded 64-tile memory cache (L1) and 150MB auto-pruned disk cache (L2) providing ambient offline coverage during commutes.
-
-### 📍 4. Autonomous Geofencing & Place Linking
-- **Sliding Geofence Window:** Dynamically registers up to 20 nearest places with Google Play Services `GeofencingClient` when continuous tracking is paused, automatically shifting the center upon moving >1km.
-- **Anti-Bounce Hysteresis:** Enforces a 90-second arrival dwell and `radius + 50m` exit buffer to eliminate edge-boundary notification spam.
-- **Place-Linked Tasks:** Links to-dos by place ID or `#tags`, alerting you with pending item counts the moment you arrive.
-
-### 🎯 5. Focus Guard
-- **Distraction Interception:** Non-intrusive AccessibilityService blocks pre-configured distracting apps during active focus sessions.
-- **Emergency Safeguards:** Essential applications (Phone, Settings, Home Launcher) remain accessible at all times.
-- **Crash-Resilient State:** Survives process death and calculates focused duration accurately across device reboots.
+    User->>AndroidSystem: Taps "Done" or "Snooze 10m"
+    AndroidSystem->>KotlinReceiver: Deliver PendingIntent Broadcast
+    Note over KotlinReceiver: Dart runtime is dormant
+    KotlinReceiver->>AndroidSystem: Cancel or Update Notification (Instant Feedback)
+    KotlinReceiver->>OutboxDisk: Atomically write mutation record (UUID, Action, Timestamp)
+    
+    Note over User,FlutterBridge: User opens application later
+    User->>FlutterBridge: Application Cold or Warm Launch
+    FlutterBridge->>KotlinReceiver: invokeMethod("pollOutbox")
+    KotlinReceiver->>OutboxDisk: Read and truncate pending records
+    KotlinReceiver-->>FlutterBridge: Return List of Outbox Actions
+    FlutterBridge->>IsarDB: Execute batch state mutation in single transaction
+    IsarDB-->>FlutterBridge: State updated
+```
 
 ---
 
-## 🏛️ System Architecture
+### Movement Tracking and Filtering Pipeline
+
+Continuous movement tracking requires suppressing stationary GPS jitter, isolating loss-of-signal periods (such as transit tunnels), and preserving battery autonomy:
+
+```mermaid
+flowchart LR
+    GPS[FusedLocationProviderClient] --> Ingestion[Ingestion & Speed Validation]
+    Ingestion --> Kalman[2D Metric Kalman Filter\nLocal ENU Tangent Plane]
+    Kalman --> JitterFilter{Velocity < 0.3 m/s\n& Accuracy < 12m?}
+    
+    JitterFilter -- Yes --> ClampStationary[Clamp to Stable Centroid]
+    JitterFilter -- No --> OutageCheck{Time Gap > 120s\nor Speed > 180 km/h?}
+    
+    ClampStationary --> AppendPoint[Record Fix]
+    OutageCheck -- Yes --> FlagGap[Tag TrailGap\nDash Boundary]
+    OutageCheck -- No --> Interpolate[Continuous Segment]
+    
+    FlagGap --> AppendPoint
+    Interpolate --> AppendPoint
+    AppendPoint --> PersistFix[Atomic Storage Append]
+    PersistFix --> Decimator[RDP Decimator\nEpsilon = 2.0m]
+    Decimator --> Viewport[Render MapLibre GL\n/ Google Maps Native SDK]
+```
+
+---
+
+### Rolling Exact Alarm Dispatch Pipeline
+
+To support infinite task recurrences without exhausting Android operating system alarm slots or degrading battery life, a rolling window reconciliation algorithm is enforced:
 
 ```mermaid
 flowchart TD
-    subgraph UI ["Flutter Presentation & UI Layer"]
-        TodayTab["Today View\n(Quick-Add, Metrics, To-Dos)"]
-        CalendarTab["Calendar View\n(Day/Month Matrix)"]
-        FocusScreen["Focus Guard\n(Timer & Blocker)"]
-        TrailScreen["Daily Trail\n(MapLibre / Google Maps)"]
-    end
-
-    subgraph State ["State Management (Riverpod 2.6)"]
-        DailyProviders["daily_providers.dart\n(Reactive State & Controllers)"]
-        DailyTrailService["DailyTrailService\n(Fixes, Gaps, Metrics)"]
-    end
-
-    subgraph Domain ["Domain / Core Logic"]
-        NLParser["NaturalLanguageParser"]
-        TrailDecimator["TrailDecimator (RDP)"]
-        TileCache["TileCacheManager (L1/L2 LRU)"]
-        AppLogger["AppLogger (Ring-Buffer)"]
-    end
-
-    subgraph Persistence ["Data Layer (Local-First)"]
-        DailyRepository["daily_repository.dart"]
-        IsarService["Isar Database\n(Tasks, Places, Trails, Focus)"]
-    end
-
-    subgraph Bridge ["Platform Channel Bridge"]
-        NativeDailyBridge["native_daily_bridge.dart\n(Typed MethodChannels)"]
-    end
-
-    subgraph Native ["Kotlin Native Layer (Android API 26-35)"]
-        AlarmReceiver["AlarmReceiver\n(setAlarmClock / Exact Alarms)"]
-        TrackingService["TrackingForegroundService\n(2D Kalman + Teleport Filter)"]
-        GeofenceReceiver["GeofenceBroadcastReceiver\n(20-Geofence Sliding Window)"]
-        OutboxWorker["OutboxManager\n(Headless Action Queue)"]
-        FocusService["AccessibilityFocusService\n(Distraction Interceptor)"]
-    end
-
-    UI --> State
-    State --> Domain
-    State --> Persistence
-    Persistence --> IsarService
-    State --> Bridge
-    Bridge --> Native
-    Native -->|Process Outbox on Boot| Bridge
+    TaskChange[Task Created, Modified, or Completed] --> RecurCalc[Compute Next Occurrences via RRule Engine]
+    RecurCalc --> WindowFilter[Filter to Horizon:\nNext 14 Days or Maximum 48 Events]
+    WindowFilter --> BridgePush[Push Schedule Manifest via NativeDailyBridge]
+    BridgePush --> NativeReconcile[Native AlarmManager Sync Engine]
+    
+    NativeReconcile --> CancelStale[Cancel Orphaned PendingIntents]
+    NativeReconcile --> ScheduleNew[Schedule Upcoming Exact Alarms]
+    
+    ScheduleNew --> CheckStyle{Task Priority == Alarm-Style?}
+    CheckStyle -- Yes --> SetAlarmClock[AlarmManager.setAlarmClock\nFull-Screen Intent Wakeup]
+    CheckStyle -- No --> SetExactIdle[AlarmManager.setExactAndAllowWhileIdle\nHigh-Importance Channel]
+    
+    SetAlarmClock --> HardwareRTC[System Hardware Real-Time Clock]
+    SetExactIdle --> HardwareRTC
 ```
 
 ---
 
-## 📁 Directory Structure
+## Core Subsystems
+
+### 1. Temporal Planning and Natural Language Capture
+
+The planning subsystem provides continuous task scheduling across temporal boundaries:
+- **Natural Language Parsing Engine (`natural_language_parser.dart`):** Tokenizes input strings to extract relative/absolute dates, times, repetition patterns, tags, and priority ranks in real time (e.g., `Review release notes tomorrow at 10:30am #release !high`).
+- **Midnight Rollover:** Uncompleted items automatically roll forward into the active day view without data duplication or manual intervention.
+- **Bi-directional Recurrence:** Supports RFC-compliant daily, weekly, monthly, and interval-based recurrence rules with historical completion isolation.
+
+### 2. Hardware-Reliable Alarm Scheduling
+
+Standard Flutter notification plugins suffer from timing drift during extended deep sleep states. Remember Me implements a bespoke native scheduler:
+- **Exact Alarm API Integration:** Uses `AlarmManager.setAlarmClock` for mission-critical reminders and `setExactAndAllowWhileIdle` for standard time-bound reminders.
+- **Doze Mode Bypass:** Direct integration with hardware RTC wake locks guarantees delivery regardless of device sleep depth or aggressive OEM battery optimization policies.
+- **Versioned Audio Channels:** Employs immutable Android O+ channels (`reminders_v2`, `reminders_alarm_v2`, `place_alerts_v2`, `trail_status`) configured with strict audio attributes (`USAGE_ALARM`, `USAGE_NOTIFICATION`) to prevent silent notification degradation.
+- **Headless Action Handling:** "Done" and "Snooze" actions are intercepted by a native broadcast receiver, updating system notification displays instantly and queueing database updates via an atomic disk outbox.
+
+### 3. High-Precision Daily Trail and Offline Cartography
+
+The spatial subsystem maintains historical movement context while minimizing CPU and battery consumption:
+- **2D Metric Kalman Filter:** Raw latitude and longitude pairs are projected onto a local East-North-Up (ENU) Cartesian plane. A constant-velocity linear Kalman filter filters multipath reflection and suppresses drift when the user is stationary (<12m standard deviation).
+- **Tunnel and Outage Isolation:** If signal loss exceeds 120 seconds or an implied teleportation velocity exceeds 180 km/h, the segment is isolated as a `TrailGap`, preventing erroneous straight-line interpolation across cities.
+- **Polyline Decimation:** Ramer-Douglas-Peucker (RDP) algorithm (`epsilon = 2.0 meters`) reduces dense coordinate sets (10,000+ points) by 75–85%, maintaining fluid 60–120 FPS render performance on resource-constrained devices.
+- **Dual Cartographic Stack:**
+  - **OpenFreeMap Bright Vector Tiles:** Vector tiles rendered via MapLibre GL without third-party API keys, credit card requirements, or cloud subscription fees.
+  - **Optional Google Maps Layer:** Drop-in native Google Maps SDK layer toggleable when a valid client key is provided.
+- **Dual-Tier Cache:** In-memory L1 cache bounded to 64 tiles combined with an L2 persistent disk cache capped at 150MB with throttled directory scanning (prunes every 50 writes).
+
+### 4. Autonomous Geofencing and Place Linking
+
+Location-triggered reminders run autonomously without running constant GPS tracking:
+- **Sliding Geofence Window:** When continuous GPS tracking is disabled, the system dynamically registers the 20 nearest saved locations via Google Play Services `GeofencingClient`. The center recalculates whenever the user moves further than 1,000 meters.
+- **Dwell and Hysteresis Filters:** Requires a continuous 90-second dwell time before firing arrival triggers, combined with a `radius + 50m` exit threshold to prevent oscillation on geofence boundaries.
+- **Headless Place Linking:** Place triggers query pending tasks associated with matching tags and display current task counts immediately without waking the Dart execution environment.
+
+### 5. Focus Guard Subsystem
+
+A distraction mitigation system designed to preserve uninterrupted attention:
+- **Window Interception:** Utilizes an Android `AccessibilityService` to monitor top-window package changes and overlay an intentional blocking screen over distraction targets.
+- **Safety Allowlist:** Core operating system utilities (Emergency Dialer, Settings, System Launcher) are hardcoded as non-blockable safety exceptions.
+- **Crash Recovery:** Session timestamps are committed to disk upon initiation, enabling exact session duration recovery across power cycles or operating system task termination.
+
+---
+
+## Codebase Organization
 
 ```text
 z7.Remember me-NIR/
-├── android/
+├── android/                                   # Native Android Project
 │   └── app/src/main/kotlin/com/example/remember_me/
-│       ├── MainActivity.kt                # Platform channel registration & life-cycle
-│       ├── AlarmReceiver.kt               # Exact alarm intent dispatcher & audio alerts
-│       ├── TrackingService.kt             # High-precision 2D Kalman GPS tracking engine
-│       ├── GeofenceReceiver.kt            # Google Play Services geofence transitions
-│       ├── OutboxManager.kt               # Headless notification actions disk queue
-│       └── AccessibilityFocusService.kt   # System window focus blocker & safety exceptions
+│       ├── MainActivity.kt                    # Platform channel lifecycle & bridge dispatch
+│       ├── AlarmReceiver.kt                   # Exact alarm receiver & sound pipeline
+│       ├── TrackingService.kt                 # Foreground service with 2D Kalman GPS filter
+│       ├── GeofenceReceiver.kt                # Hardware geofence transition broadcast receiver
+│       ├── OutboxManager.kt                   # Disk-backed headless notification action queue
+│       └── AccessibilityFocusService.kt       # System accessibility focus guard monitor
 ├── lib/
-│   ├── main.dart                          # Application entry point & crash reporting
+│   ├── main.dart                              # Application bootstrap & error boundary
 │   └── src/
-│       ├── app.dart                       # App root, multi-palette theming, orientation
+│       ├── app.dart                           # App root, orientation lock, palette theme engine
 │       ├── core/
-│       │   ├── bootstrap/bootstrap.dart   # Isar DB & platform subsystem bootstrapper
-│       │   ├── logging/app_logger.dart    # Size-capped diagnostic ring-buffer
-│       │   ├── notifications/             # ReminderScheduler interface & unified implementation
-│       │   ├── platform/                  # Typed NativeDailyBridge MethodChannels
-│       │   ├── theme/daily_theme.dart     # Palette engine (Mint, Ocean, Rose)
-│       │   └── utils/                     # NaturalLanguageParser, TrailDecimator, Date formatters
+│       │   ├── bootstrap/bootstrap.dart       # Asynchronous database & service startup
+│       │   ├── logging/app_logger.dart        # Ring-buffered in-memory and disk logger
+│       │   ├── notifications/                 # Unified ReminderScheduler interface
+│       │   ├── platform/                      # Typed NativeDailyBridge MethodChannels
+│       │   ├── theme/daily_theme.dart         # Multi-palette system (Mint, Ocean, Rose)
+│       │   └── utils/                         # NaturalLanguageParser, TrailDecimator, Date formatters
 │       ├── data/
-│       │   ├── local/isar_service.dart    # Isar lifecycle, schemas, migration handling
-│       │   ├── models/                    # TaskModel, SavedPlaceModel, TrailFix, FocusSession
-│       │   └── repositories/              # Repository interfaces & Isar implementations
+│       │   ├── local/isar_service.dart        # Isar database lifecycle & schema definitions
+│       │   ├── models/                        # TaskModel, SavedPlaceModel, TrailFix, FocusSession
+│       │   └── repositories/                  # Domain repositories behind abstract interfaces
 │       ├── features/
-│       │   ├── calendar/presentation/     # Calendar tab with date-strip and recurrence grid
-│       │   ├── tasks/presentation/        # QuickAddBar, TaskRow, TaskEditorBottomSheet
-│       │   ├── today/presentation/        # Today dashboard, completion rings, priority buckets
-│       │   └── splash/presentation/       # EntranceReveal fluid physics splash
+│       │   ├── calendar/presentation/         # Date strip, monthly matrix, recurrence breakdown
+│       │   ├── tasks/presentation/            # QuickAddBar, TaskRow, TaskEditorBottomSheet
+│       │   ├── today/presentation/            # Today dashboard, completion metrics, task views
+│       │   └── splash/presentation/           # EntranceReveal fluid physics animation
 │       └── presentation/
-│           ├── providers/daily_providers.dart # Riverpod state providers
-│           └── screens/                   # DailyHomeScreen, DailyFocusScreen, DailyTrailScreen
-├── test/                                  # 57+ unit and widget test specs
+│           ├── providers/daily_providers.dart # Riverpod state providers and controllers
+│           └── screens/                       # DailyHomeScreen, DailyFocusScreen, DailyTrailScreen
+├── test/                                      # Unit, widget, and state test suites (57+ tests)
 ├── docs/
-│   ├── AUDIT.md                           # Comprehensive production codebase audit
-│   ├── API_SETUP.md                       # Free vector map & optional Google Maps config
-│   └── adr/                               # Architecture Decision Records (001 to 008)
-└── pubspec.yaml                           # Dependency definitions & asset configurations
+│   ├── AUDIT.md                               # Architectural audit & root-cause analyses
+│   ├── API_SETUP.md                           # Cartography and API configuration documentation
+│   └── adr/                                   # Architecture Decision Records (001 through 008)
+└── pubspec.yaml                               # Flutter dependencies and compilation constraints
 ```
 
 ---
 
-## 🔬 Technical Highlights & Engineering Deep Dives
+## Security, Privacy, and Android Permissions
 
-### 1. Headless Outbox Pattern
-Notification actions (**"Done"** and **"Snooze"**) must execute immediately. Spawning the Flutter engine from a notification action costs 200–400 MB RAM and takes over 1.5 seconds.
-- When an action is tapped, Kotlin's `NotificationReceiver` updates the system notification immediately and writes an atomic record to `remember_me_outbox.json`.
-- When the user subsequently opens the Flutter app, `NativeDailyBridge.pollOutbox()` ingests the pending actions into the Isar database in a single transaction, achieving zero UI freeze and instantaneous user feedback.
+Remember Me adheres to a strict principle of least privilege and zero data exfiltration:
 
-### 2. 2D Metric Kalman Filter & Stationary Jitter Suppression
-Standard GPS raw data reports substantial noise when stationary (GPS drift).
-- Raw lat/lng fixes are projected onto a local tangent plane using an East-North-Up (ENU) Cartesian frame.
-- A 4-state constant velocity Kalman filter tracks `[x, y, vx, vy]`.
-- Fixes with velocities under 0.3 m/s and accuracy deviations under 12m are clamped, eliminating phantom mileage accumulation while sitting at a desk.
-- Prolonged outages (e.g. subway tunnels) are preserved as `TrailGap` boundaries rather than interpolated nonsense.
-
-### 3. High-Performance Polyline Decimation
-Daily trails often accumulate 10,000+ coordinates per day. Rendering raw polylines directly stalls the Skia/Impeller Canvas thread.
-- `TrailDecimator` applies the **Ramer-Douglas-Peucker (RDP)** algorithm (`epsilon = 2.0 meters`).
-- Line segments and gap polylines are memoized (`_cachedSegments`, `_cachedGapPolylines`) and only recomputed when the underlying fix collection changes.
-- Panning and zooming remain locked at 60–120 FPS.
-
-### 4. Zero-Cost Free Vector Maps
-- Standard map tiles require paid subscriptions or credit card billing accounts.
-- Remember Me integrates **OpenFreeMap Bright** vector styles hosted over fast CDNs with zero billing requirements.
-- Combined with a dual-tier LRU cache (64 tiles in RAM, 150 MB disk cache throttled to prune once every 50 writes), maps load instantly even when commuting offline.
+| Android Permission | Declaration Level | Operational Justification | Privacy Guarantee |
+| :--- | :--- | :--- | :--- |
+| `POST_NOTIFICATIONS` | Runtime (API 33+) | Emits critical reminders and place notifications. | Strictly local; no promotional or tracking notifications. |
+| `SCHEDULE_EXACT_ALARM` | System / Special | Configures hardware RTC wakeups for user tasks. | Controlled within a finite 14-day rolling window. |
+| `ACCESS_FINE_LOCATION` | Runtime | Feeds the 2D Kalman filter during trail recording. | Stored strictly in local database; never transmitted off-device. |
+| `ACCESS_BACKGROUND_LOCATION` | Runtime | Evaluates hardware geofences while application is closed. | Evaluated locally by system Google Play Services daemon. |
+| `FOREGROUND_SERVICE_LOCATION` | Manifest / System | Keeps movement tracking thread alive during transit. | Explicit status notification visible at all times while active. |
+| `ACCESSIBILITY_SERVICE` | Explicit Settings | Inspects foreground package names during Focus Mode. | Inspects only window package identifiers; zero text or screen capture. |
 
 ---
 
-## 🔒 Permissions & Privacy Model
-
-Remember Me follows a strict **zero-trust, local-only** design:
-
-| Permission | Purpose | User Guarantee |
-| :--- | :--- | :--- |
-| `POST_NOTIFICATIONS` | Time reminders and place arrival alerts. | Never used for ads or marketing. |
-| `SCHEDULE_EXACT_ALARM` | Hardware precision for user-defined task alarms. | Scheduled within a safe 14-day rolling window. |
-| `ACCESS_FINE_LOCATION` | Movement trail recording and place geofences. | Processed entirely on-device; never leaves your phone. |
-| `FOREGROUND_SERVICE` | Keeps movement tracking alive during workouts or commutes. | Shows a persistent notification; stops instantly when toggled off. |
-| `ACCESSIBILITY_SERVICE` | Detects app launches during Focus Mode to block distractions. | Strictly inspects package names; never captures text or screen contents. |
-
----
-
-## 🛠️ Building & Verifying
+## Build, Test, and Verification
 
 ### Prerequisites
-- **Flutter SDK:** `^3.24.0` (Dart `^3.5.0`)
-- **Android SDK:** API Level 26 (Android 8.0) to API Level 35 (Android 15)
-- **JDK:** OpenJDK 17
-- **Gradle:** 8.14
+- **Flutter SDK:** Version `3.24.x` or higher
+- **Dart SDK:** Version `3.5.x` or higher
+- **Android SDK:** Compile SDK 35, Min SDK 26, Target SDK 35
+- **Java Development Kit:** OpenJDK 17
+- **Gradle:** Version 8.14 (bundled via Gradle Wrapper)
 
-### Verification Commands
+### Verification Pipeline
+The codebase enforces a zero-warning quality gate across both Dart and Kotlin layers.
+
 ```powershell
-# 1. Fetch dependencies
+# 1. Resolve Dart and Flutter dependencies
 flutter pub get
 
-# 2. Strict static analysis (Zero-warning policy)
+# 2. Execute strict static analysis (0 issues required)
 flutter analyze
 
-# 3. Run all Flutter unit & widget tests
+# 3. Execute Flutter unit and widget test suite (57 passing tests)
 flutter test
 
-# 4. Run native Android JVM unit tests
+# 4. Execute Native Android JVM unit tests
 cd android
 .\gradlew.bat :app:testDebugUnitTest
 cd ..
 ```
 
-### Build Production Release APK
+---
+
+## Binary Releases and Deployment
+
+Production release builds are compiled with full R8 code optimization, resource shrinking, and dead-code stripping:
+
+### Build Universal Release Package
 ```powershell
 flutter build apk --release --tree-shake-icons
 ```
-Artifact generated: `build/app/outputs/flutter-apk/app-release.apk`
+Output path:
+```text
+build/app/outputs/flutter-apk/app-release.apk
+```
+
+### Direct Download
+- [**Download Remember-Me.apk (v1.0.1)**](https://github.com/sharancode3/Remember-Me---Personal-Reminder-To-do-/releases/download/v1.0.1/Remember-Me.apk)
+- [**View Release on GitHub**](https://github.com/sharancode3/Remember-Me---Personal-Reminder-To-do-/releases/tag/v1.0.1)
 
 ---
 
-## 📑 Architecture Decision Records (ADRs)
+## Architecture Decision Records (ADR)
 
-All architectural shifts and trade-offs are strictly documented:
+All design choices, trade-offs, and technical pivots are documented within the repository:
 
-| ADR | Title | Decision Summary |
-| :--- | :--- | :--- |
-| [**001**](docs/adr/001-architecture-pruning.md) | Architecture Pruning & Hygiene | Pruned dormant Architecture A engines; locked project to Architecture B Daily App. |
-| [**002**](docs/adr/002-persistence-strategy.md) | Persistence Strategy | Decoupled Isar 3.x behind repository interfaces for painless future Drift migration. |
-| [**003**](docs/adr/003-notification-scheduler-outbox.md) | Unified Scheduler & Headless Outbox | Replaced divergent schedulers with single Kotlin `AlarmManager` and disk outbox. |
-| [**003b**](docs/adr/003-trail-kalman-gaps.md) | Kalman Filter & GPS Gap Detection | Implemented local ENU 2D Kalman filter with tunnel gap detection and dead-reckoning. |
-| [**004**](docs/adr/004-native-geofencing-places.md) | Native Geofencing & Place Linking | 20-geofence sliding window with 90s dwell and hysteresis filtering. |
-| [**005**](docs/adr/005-map-stack.md) | Map Stack & Vector Tiles | MapLibre GL with OpenFreeMap Bright vector tiles + opt-in Google Maps SDK layer. |
-| [**006**](docs/adr/006-feature-architecture.md) | Feature Modularization | Decoupled features with typed compile-time checked `NativeDailyBridge`. |
-| [**007**](docs/adr/007-performance-ci.md) | Performance & Decimation | Integrated RDP polyline decimation and bounded LRU tile caching. |
-| [**008**](docs/adr/008-final-polish.md) | Entrance Reveal & Polish | Added physics-based fluid entrance reveal and locked orientation. |
-
----
-
-## 📄 License
-
-Distributed under the **MIT License**. See `LICENSE` for more information.
+| Identifier | Document | Topic | Context & Rationale |
+| :--- | :--- | :--- | :--- |
+| **ADR 001** | [`001-architecture-pruning.md`](docs/adr/001-architecture-pruning.md) | Codebase Pruning | Pruned dormant Architecture A engines and consolidated on Architecture B Daily App. |
+| **ADR 002** | [`002-persistence-strategy.md`](docs/adr/002-persistence-strategy.md) | Persistence Layer | Isolated Isar 3.x behind clean repository interfaces for future migration readiness. |
+| **ADR 003a** | [`003-notification-scheduler-outbox.md`](docs/adr/003-notification-scheduler-outbox.md) | Outbox Pattern | Unified alarm scheduling on native Kotlin and implemented atomic headless disk outbox. |
+| **ADR 003b** | [`003-trail-kalman-gaps.md`](docs/adr/003-trail-kalman-gaps.md) | Movement Tracking | Deployed local ENU 2D Kalman filter, stationary drift clamp, and explicit gap detection. |
+| **ADR 004** | [`004-native-geofencing-places.md`](docs/adr/004-native-geofencing-places.md) | Geofencing Engine | Constructed 20-geofence sliding window with 90s dwell and hysteresis boundary filters. |
+| **ADR 005** | [`005-map-stack.md`](docs/adr/005-map-stack.md) | Vector Cartography | Standardized on MapLibre GL with OpenFreeMap Bright vector tiles and optional Google Maps view. |
+| **ADR 006** | [`006-feature-architecture.md`](docs/adr/006-feature-architecture.md) | Feature Packaging | Modularized codebase into feature boundaries with typed compile-time platform bridges. |
+| **ADR 007** | [`007-performance-ci.md`](docs/adr/007-performance-ci.md) | Rendering Performance | Integrated RDP polyline decimation and bounded dual-tier LRU tile cache. |
+| **ADR 008** | [`008-final-polish.md`](docs/adr/008-final-polish.md) | UI Polish & Release | Finalized physics-based fluid entrance reveal, orientation locks, and production sign-off. |
 
 ---
 
-<div align="center">
-  <sub>Crafted with engineering discipline for private, intentional daily productivity.</sub>
-</div>
+## License
+
+Remember Me is licensed under the [MIT License](LICENSE).
+All derivative works must preserve copyright and license notices.
