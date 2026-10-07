@@ -320,8 +320,9 @@ build/app/outputs/flutter-apk/app-release.apk
 ```
 
 ### Direct Download
-- [**Download Remember-Me.apk (v1.0.1)**](https://github.com/sharancode3/Remember-Me---Personal-Reminder-To-do-/releases/download/v1.0.1/Remember-Me.apk)
-- [**View Release on GitHub**](https://github.com/sharancode3/Remember-Me---Personal-Reminder-To-do-/releases/tag/v1.0.1)
+- [**Download Remember-Me.apk (Latest Release)**](https://github.com/sharancode3/Remember-Me---Personal-Reminder-To-do-/releases/latest/download/Remember-Me.apk)
+- [**Download Remember-Me.apk (v1.0.2)**](https://github.com/sharancode3/Remember-Me---Personal-Reminder-To-do-/releases/download/v1.0.2/Remember-Me.apk)
+- [**View Release on GitHub**](https://github.com/sharancode3/Remember-Me---Personal-Reminder-To-do-/releases/tag/v1.0.2)
 
 ---
 
@@ -340,6 +341,7 @@ All design choices, trade-offs, and technical pivots are documented within the r
 | **ADR 006** | [`006-feature-architecture.md`](docs/adr/006-feature-architecture.md) | Feature Packaging | Modularized codebase into feature boundaries with typed compile-time platform bridges. |
 | **ADR 007** | [`007-performance-ci.md`](docs/adr/007-performance-ci.md) | Rendering Performance | Integrated RDP polyline decimation and bounded dual-tier LRU tile cache. |
 | **ADR 008** | [`008-final-polish.md`](docs/adr/008-final-polish.md) | UI Polish & Release | Finalized physics-based fluid entrance reveal, orientation locks, and production sign-off. |
+| **ADR 009** | [`009-codebase-restructuring-hardening.md`](docs/adr/009-codebase-restructuring-hardening.md) | Canonical Barrels & Hardening | Standardized module barrel exports, enforced flow control blocks, and version bump. |
 
 ---
 
