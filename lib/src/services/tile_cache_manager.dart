@@ -38,10 +38,15 @@ class TileCacheManager {
     return 'tile_${uri.toString().hashCode}.png';
   }
 
+  static const int maxMemoryTiles = 64;
+  int _writesSinceLastPrune = 0;
+
   Future<Uint8List?> getCachedTile(Uri uri) async {
     final key = _keyForUri(uri);
     if (_memoryCache.containsKey(key)) {
-      return _memoryCache[key];
+      final bytes = _memoryCache.remove(key)!;
+      _memoryCache[key] = bytes;
+      return bytes;
     }
     if (kIsWeb) return null;
     try {
@@ -51,6 +56,9 @@ class TileCacheManager {
       if (await file.exists()) {
         final bytes = await file.readAsBytes();
         _memoryCache[key] = bytes;
+        if (_memoryCache.length > maxMemoryTiles) {
+          _memoryCache.remove(_memoryCache.keys.first);
+        }
         return bytes;
       }
     } catch (_) {}
@@ -60,13 +68,19 @@ class TileCacheManager {
   Future<void> putCachedTile(Uri uri, Uint8List bytes) async {
     final key = _keyForUri(uri);
     _memoryCache[key] = bytes;
+    if (_memoryCache.length > maxMemoryTiles) {
+      _memoryCache.remove(_memoryCache.keys.first);
+    }
     if (kIsWeb) return;
     try {
       final dir = await cacheDir;
       if (dir == null) return;
       final file = File('${dir.path}/$key');
       await file.writeAsBytes(bytes);
-      _pruneCacheIfNeeded(dir);
+      if (++_writesSinceLastPrune >= 50) {
+        _writesSinceLastPrune = 0;
+        _pruneCacheIfNeeded(dir);
+      }
     } catch (_) {}
   }
 

@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import '../../core/theme/daily_theme.dart';
+import '../../core/utils/trail_decimator.dart';
 import '../../services/daily_trail_service.dart';
 import '../../services/tile_cache_manager.dart';
 import '../providers/providers.dart';
@@ -31,6 +32,10 @@ class _DailyTrailScreenState extends ConsumerState<DailyTrailScreen> {
       _busy = false,
       _tileError = false;
   DateTime? _fittedDay;
+  List<TrailFix>? _cachedFixesRef;
+  List<TrailGap>? _cachedGapsRef;
+  List<List<LatLng>> _cachedSegments = const [];
+  List<Polyline> _cachedGapPolylines = const [];
   Map<String, dynamic> _data(DailyTrailService trail) => {
     'day': trail.selectedDay.toIso8601String(),
     'points': trail.fixes.map((p) => p.toJson()).toList(),
@@ -537,31 +542,27 @@ class _DailyTrailScreenState extends ConsumerState<DailyTrailScreen> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final trail = ref.watch(dailyTrailProvider);
-    final fixes = trail.fixes;
-    final stats = TrailStats(fixes);
-    ref.listen(dailyTrailProvider, (_, next) {
-      _googleChannel?.invokeMethod<void>('update', _data(next));
-      if (_fittedDay != next.selectedDay && next.fixes.isNotEmpty) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            _fit();
-            _fittedDay = next.selectedDay;
-          }
-        });
-      }
-    });
+  void _updateCachedPolylines(List<TrailFix> fixes, List<TrailGap> gaps) {
+    if (identical(_cachedFixesRef, fixes) && identical(_cachedGapsRef, gaps)) {
+      return;
+    }
+    _cachedFixesRef = fixes;
+    _cachedGapsRef = gaps;
+
+    final renderFixes = fixes.length > 50
+        ? TrailDecimator.decimate(fixes, epsilonMeters: 2.0)
+        : fixes;
+
     final segments = <List<LatLng>>[];
-    for (var i = 0; i < fixes.length; i++) {
+    for (var i = 0; i < renderFixes.length; i++) {
       if (i == 0 ||
-          fixes[i].gap ||
-          fixes[i].time.difference(fixes[i - 1].time).inSeconds > 60) {
+          renderFixes[i].gap ||
+          renderFixes[i].time.difference(renderFixes[i - 1].time).inSeconds > 60) {
         segments.add([]);
       }
-      segments.last.add(fixes[i].point);
+      segments.last.add(renderFixes[i].point);
     }
+
     final gapPolylines = <Polyline>[];
     for (var i = 1; i < segments.length; i++) {
       if (segments[i - 1].isNotEmpty && segments[i].isNotEmpty) {
@@ -575,7 +576,7 @@ class _DailyTrailScreenState extends ConsumerState<DailyTrailScreen> {
         );
       }
     }
-    for (final gap in trail.gaps) {
+    for (final gap in gaps) {
       if (gap.fromPoint != null && gap.toPoint != null) {
         final alreadyPresent = gapPolylines.any((p) =>
             p.points.length == 2 &&
@@ -593,6 +594,30 @@ class _DailyTrailScreenState extends ConsumerState<DailyTrailScreen> {
         }
       }
     }
+
+    _cachedSegments = segments;
+    _cachedGapPolylines = gapPolylines;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final trail = ref.watch(dailyTrailProvider);
+    final fixes = trail.fixes;
+    final stats = TrailStats(fixes);
+    ref.listen(dailyTrailProvider, (_, next) {
+      _googleChannel?.invokeMethod<void>('update', _data(next));
+      if (_fittedDay != next.selectedDay && next.fixes.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _fit();
+            _fittedDay = next.selectedDay;
+          }
+        });
+      }
+    });
+    _updateCachedPolylines(fixes, trail.gaps);
+    final segments = _cachedSegments;
+    final gapPolylines = _cachedGapPolylines;
     return RepaintBoundary(
       key: _mapImage,
       child: Stack(
