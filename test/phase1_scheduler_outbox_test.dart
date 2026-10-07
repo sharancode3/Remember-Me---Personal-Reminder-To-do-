@@ -87,27 +87,39 @@ void main() {
     });
 
     test('Weekly recurrence only includes Mon (1), Wed (3), Fri (5)', () {
-      const mwf = ReminderRecurrence(
-        kind: RepeatKind.weekly,
-        days: [1, 3, 5],
-      );
+      const mwf = ReminderRecurrence(kind: RepeatKind.weekly, days: [1, 3, 5]);
       final monday = DateTime(2026, 10, 5, 10); // 2026-10-05 is a Monday
       expect(monday.weekday, 1);
 
       expect(mwf.includes(monday, monday), isTrue); // Mon
-      expect(mwf.includes(monday.add(const Duration(days: 1)), monday), isFalse); // Tue
-      expect(mwf.includes(monday.add(const Duration(days: 2)), monday), isTrue); // Wed
-      expect(mwf.includes(monday.add(const Duration(days: 3)), monday), isFalse); // Thu
-      expect(mwf.includes(monday.add(const Duration(days: 4)), monday), isTrue); // Fri
-      expect(mwf.includes(monday.add(const Duration(days: 5)), monday), isFalse); // Sat
-      expect(mwf.includes(monday.add(const Duration(days: 6)), monday), isFalse); // Sun
+      expect(
+        mwf.includes(monday.add(const Duration(days: 1)), monday),
+        isFalse,
+      ); // Tue
+      expect(
+        mwf.includes(monday.add(const Duration(days: 2)), monday),
+        isTrue,
+      ); // Wed
+      expect(
+        mwf.includes(monday.add(const Duration(days: 3)), monday),
+        isFalse,
+      ); // Thu
+      expect(
+        mwf.includes(monday.add(const Duration(days: 4)), monday),
+        isTrue,
+      ); // Fri
+      expect(
+        mwf.includes(monday.add(const Duration(days: 5)), monday),
+        isFalse,
+      ); // Sat
+      expect(
+        mwf.includes(monday.add(const Duration(days: 6)), monday),
+        isFalse,
+      ); // Sun
     });
 
     test('Monthly on 31st skips short months and fires on 31st', () {
-      const month31 = ReminderRecurrence(
-        kind: RepeatKind.monthly,
-        days: [31],
-      );
+      const month31 = ReminderRecurrence(kind: RepeatKind.monthly, days: [31]);
       final jan31 = DateTime(2026, 1, 31, 12);
       expect(month31.includes(jan31, jan31), isTrue);
 
@@ -125,10 +137,7 @@ void main() {
     });
 
     test('Leap year Feb 29 handling (2028 is a leap year, 2026 is not)', () {
-      const feb29 = ReminderRecurrence(
-        kind: RepeatKind.monthly,
-        days: [29],
-      );
+      const feb29 = ReminderRecurrence(kind: RepeatKind.monthly, days: [29]);
       final anchor = DateTime(2024, 2, 29);
       // In 2028 (leap year), Feb 29 exists
       final leapFeb29 = DateTime(2028, 2, 29);
@@ -140,48 +149,51 @@ void main() {
   });
 
   group('Phase 1 - Reconcile Idempotency and Delta Calculation', () {
-    test('Multiple reconcile() calls produce idempotent scheduled results', () async {
-      final scheduler = MockRecordingScheduler();
-      final repository = DailyRepository(null, scheduler);
+    test(
+      'Multiple reconcile() calls produce idempotent scheduled results',
+      () async {
+        final scheduler = MockRecordingScheduler();
+        final repository = DailyRepository(null, scheduler);
 
-      final task1 = TaskModel()
-        ..title = 'Standup'
-        ..startAt = DateTime.now().add(const Duration(hours: 2))
-        ..endAt = DateTime.now().add(const Duration(hours: 2, minutes: 15))
-        ..reminderOffsetMinutes = 0
-        ..recurrenceRule = 'none';
+        final task1 = TaskModel()
+          ..title = 'Standup'
+          ..startAt = DateTime.now().add(const Duration(hours: 2))
+          ..endAt = DateTime.now().add(const Duration(hours: 2, minutes: 15))
+          ..reminderOffsetMinutes = 0
+          ..recurrenceRule = 'none';
 
-      final task2 = TaskModel()
-        ..title = 'Lunch'
-        ..startAt = DateTime.now().add(const Duration(hours: 5))
-        ..endAt = DateTime.now().add(const Duration(hours: 6))
-        ..reminderOffsetMinutes = 0
-        ..recurrenceRule = 'none';
+        final task2 = TaskModel()
+          ..title = 'Lunch'
+          ..startAt = DateTime.now().add(const Duration(hours: 5))
+          ..endAt = DateTime.now().add(const Duration(hours: 6))
+          ..reminderOffsetMinutes = 0
+          ..recurrenceRule = 'none';
 
-      await repository.save(task1);
-      await repository.save(task2);
+        await repository.save(task1);
+        await repository.save(task2);
 
-      final initialScheduledCount = scheduler.scheduled.length;
-      expect(initialScheduledCount, 2);
+        final initialScheduledCount = scheduler.scheduled.length;
+        expect(initialScheduledCount, 2);
 
-      // Subsequent reconcile calls should not duplicate
-      await repository.reconcile();
-      expect(scheduler.scheduled.length, 2);
+        // Subsequent reconcile calls should not duplicate
+        await repository.reconcile();
+        expect(scheduler.scheduled.length, 2);
 
-      await repository.reconcile();
-      expect(scheduler.scheduled.length, 2);
+        await repository.reconcile();
+        expect(scheduler.scheduled.length, 2);
 
-      // Completing one task reduces scheduled count by 1
-      await repository.toggle(task1);
-      expect(scheduler.scheduled.length, 1);
-      expect(scheduler.scheduled.containsKey(task1.id), isFalse);
+        // Completing one task reduces scheduled count by 1
+        await repository.toggle(task1);
+        expect(scheduler.scheduled.length, 1);
+        expect(scheduler.scheduled.containsKey(task1.id), isFalse);
 
-      // Reconcile again remains 1
-      await repository.reconcile();
-      expect(scheduler.scheduled.length, 1);
+        // Reconcile again remains 1
+        await repository.reconcile();
+        expect(scheduler.scheduled.length, 1);
 
-      repository.dispose();
-    });
+        repository.dispose();
+      },
+    );
   });
 
   group('Phase 1 - Outbox Drain and Deduplication', () {

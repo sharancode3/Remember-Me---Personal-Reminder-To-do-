@@ -116,7 +116,11 @@ void main() {
             }
           });
       final notifications = _SilentNotifications();
-      final repository = DailyRepository(null, InMemoryReminderScheduler(), notifications);
+      final repository = DailyRepository(
+        null,
+        InMemoryReminderScheduler(),
+        notifications,
+      );
       final day = dayOnly(DateTime.now());
       for (final item in [
         ('Pick up groceries', 18, false),

@@ -97,7 +97,11 @@ class TaskRow extends ConsumerWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.place, size: 12, color: Color(0xFF107C41)),
+                            const Icon(
+                              Icons.place,
+                              size: 12,
+                              color: Color(0xFF107C41),
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               task.resolvedPlaceTag!,

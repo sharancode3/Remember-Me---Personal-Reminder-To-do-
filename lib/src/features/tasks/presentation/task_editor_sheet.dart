@@ -17,10 +17,8 @@ Future<void> showDailyEditor(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
-    builder: (_) => DailyEditorSheet(
-      day: ref.read(dailyDateProvider),
-      task: task,
-    ),
+    builder: (_) =>
+        DailyEditorSheet(day: ref.read(dailyDateProvider), task: task),
   );
 }
 
@@ -35,7 +33,8 @@ class DailyEditorSheet extends ConsumerStatefulWidget {
 
 class _DailyEditorSheetState extends ConsumerState<DailyEditorSheet> {
   late final TaskModel _draftTask = widget.task ?? TaskModel();
-  late final bool _isOccurrence = widget.task != null &&
+  late final bool _isOccurrence =
+      widget.task != null &&
       widget.task!.templateId != null &&
       widget.task!.templateId != widget.task!.id;
   late EditRecurrenceScope _editScope = EditRecurrenceScope.thisOccurrenceOnly;
@@ -227,7 +226,8 @@ class _DailyEditorSheetState extends ConsumerState<DailyEditorSheet> {
             ),
             AnimatedSize(
               duration: const Duration(milliseconds: 240),
-              child: _repeat == RepeatKind.weekly || _repeat == RepeatKind.monthly
+              child:
+                  _repeat == RepeatKind.weekly || _repeat == RepeatKind.monthly
                   ? Padding(
                       padding: const EdgeInsets.only(top: 12),
                       child: Wrap(
@@ -271,9 +271,13 @@ class _DailyEditorSheetState extends ConsumerState<DailyEditorSheet> {
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Alarm-style (wake screen)'),
-                subtitle: const Text('Plays alarm sound and wakes screen with alert'),
+                subtitle: const Text(
+                  'Plays alarm sound and wakes screen with alert',
+                ),
                 value: _isAlarmStyle,
-                onChanged: _saving ? null : (v) => setState(() => _isAlarmStyle = v),
+                onChanged: _saving
+                    ? null
+                    : (v) => setState(() => _isAlarmStyle = v),
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<int>(
@@ -285,18 +289,31 @@ class _DailyEditorSheetState extends ConsumerState<DailyEditorSheet> {
                 ),
                 items: const [
                   DropdownMenuItem(value: 0, child: Text('Off (fire once)')),
-                  DropdownMenuItem(value: 1, child: Text('Repeat every 1 min until done')),
-                  DropdownMenuItem(value: 5, child: Text('Repeat every 5 min until done')),
-                  DropdownMenuItem(value: 10, child: Text('Repeat every 10 min until done')),
+                  DropdownMenuItem(
+                    value: 1,
+                    child: Text('Repeat every 1 min until done'),
+                  ),
+                  DropdownMenuItem(
+                    value: 5,
+                    child: Text('Repeat every 5 min until done'),
+                  ),
+                  DropdownMenuItem(
+                    value: 10,
+                    child: Text('Repeat every 10 min until done'),
+                  ),
                 ],
-                onChanged: _saving ? null : (v) => setState(() => _nagMinutes = v ?? 0),
+                onChanged: _saving
+                    ? null
+                    : (v) => setState(() => _nagMinutes = v ?? 0),
               ),
             ],
             if (savedPlaces.isNotEmpty) ...[
               const SizedBox(height: 12),
               DropdownButtonFormField<String?>(
                 isExpanded: true,
-                initialValue: savedPlaces.any((p) => p.id == _placeId) ? _placeId : null,
+                initialValue: savedPlaces.any((p) => p.id == _placeId)
+                    ? _placeId
+                    : null,
                 decoration: const InputDecoration(
                   labelText: 'Linked Place (Proximity alert)',
                   prefixIcon: Icon(Icons.place_outlined),
@@ -339,7 +356,12 @@ class _DailyEditorSheetState extends ConsumerState<DailyEditorSheet> {
                     child: Text('All occurrences (series)'),
                   ),
                 ],
-                onChanged: _saving ? null : (v) => setState(() => _editScope = v ?? EditRecurrenceScope.thisOccurrenceOnly),
+                onChanged: _saving
+                    ? null
+                    : (v) => setState(
+                        () => _editScope =
+                            v ?? EditRecurrenceScope.thisOccurrenceOnly,
+                      ),
               ),
             ],
             if (_error != null)

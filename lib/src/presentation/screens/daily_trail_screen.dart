@@ -40,13 +40,22 @@ class _DailyTrailScreenState extends ConsumerState<DailyTrailScreen> {
     'day': trail.selectedDay.toIso8601String(),
     'points': trail.fixes.map((p) => p.toJson()).toList(),
     'places': trail.places.map((p) => p.toJson()).toList(),
-    'gaps': trail.gaps.map((g) => {
-      'start': g.start.millisecondsSinceEpoch,
-      'end': g.end.millisecondsSinceEpoch,
-      'reason': g.reason,
-      if (g.fromPoint != null) 'from': {'lat': g.fromPoint!.latitude, 'lng': g.fromPoint!.longitude},
-      if (g.toPoint != null) 'to': {'lat': g.toPoint!.latitude, 'lng': g.toPoint!.longitude},
-    }).toList(),
+    'gaps': trail.gaps
+        .map(
+          (g) => {
+            'start': g.start.millisecondsSinceEpoch,
+            'end': g.end.millisecondsSinceEpoch,
+            'reason': g.reason,
+            if (g.fromPoint != null)
+              'from': {
+                'lat': g.fromPoint!.latitude,
+                'lng': g.fromPoint!.longitude,
+              },
+            if (g.toPoint != null)
+              'to': {'lat': g.toPoint!.latitude, 'lng': g.toPoint!.longitude},
+          },
+        )
+        .toList(),
     'satellite': _satellite,
   };
   void _fit() {
@@ -557,7 +566,8 @@ class _DailyTrailScreenState extends ConsumerState<DailyTrailScreen> {
     for (var i = 0; i < renderFixes.length; i++) {
       if (i == 0 ||
           renderFixes[i].gap ||
-          renderFixes[i].time.difference(renderFixes[i - 1].time).inSeconds > 60) {
+          renderFixes[i].time.difference(renderFixes[i - 1].time).inSeconds >
+              60) {
         segments.add([]);
       }
       segments.last.add(renderFixes[i].point);
@@ -578,10 +588,12 @@ class _DailyTrailScreenState extends ConsumerState<DailyTrailScreen> {
     }
     for (final gap in gaps) {
       if (gap.fromPoint != null && gap.toPoint != null) {
-        final alreadyPresent = gapPolylines.any((p) =>
-            p.points.length == 2 &&
-            p.points.first == gap.fromPoint &&
-            p.points.last == gap.toPoint);
+        final alreadyPresent = gapPolylines.any(
+          (p) =>
+              p.points.length == 2 &&
+              p.points.first == gap.fromPoint &&
+              p.points.last == gap.toPoint,
+        );
         if (!alreadyPresent) {
           gapPolylines.add(
             Polyline(
@@ -667,9 +679,9 @@ class _DailyTrailScreenState extends ConsumerState<DailyTrailScreen> {
                     children: [
                       _OsmTiles(
                         onFailure: () {
-                            if (!_tileError && mounted) {
-                              setState(() => _tileError = true);
-                            }
+                          if (!_tileError && mounted) {
+                            setState(() => _tileError = true);
+                          }
                         },
                       ),
                       PolylineLayer(
@@ -720,40 +732,67 @@ class _DailyTrailScreenState extends ConsumerState<DailyTrailScreen> {
                               ),
                             ),
                           ),
-                          ...trail.gaps.where((g) => g.fromPoint != null && g.toPoint != null).map((g) {
-                            final midLat = (g.fromPoint!.latitude + g.toPoint!.latitude) / 2;
-                            final midLng = (g.fromPoint!.longitude + g.toPoint!.longitude) / 2;
-                            final dist = const Distance().as(LengthUnit.Meter, g.fromPoint!, g.toPoint!);
-                            final mins = g.duration.inMinutes;
-                            final label = mins > 0
-                                ? '${mins}m gap · ${(dist / 1000).toStringAsFixed(1)}km'
-                                : '${(dist / 1000).toStringAsFixed(1)}km gap';
-                            return Marker(
-                              point: LatLng(midLat, midLng),
-                              width: 140,
-                              height: 28,
-                              child: Center(
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withValues(alpha: 0.65),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(Icons.swap_horiz, size: 14, color: Colors.white70),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        label,
-                                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600),
+                          ...trail.gaps
+                              .where(
+                                (g) => g.fromPoint != null && g.toPoint != null,
+                              )
+                              .map((g) {
+                                final midLat =
+                                    (g.fromPoint!.latitude +
+                                        g.toPoint!.latitude) /
+                                    2;
+                                final midLng =
+                                    (g.fromPoint!.longitude +
+                                        g.toPoint!.longitude) /
+                                    2;
+                                final dist = const Distance().as(
+                                  LengthUnit.Meter,
+                                  g.fromPoint!,
+                                  g.toPoint!,
+                                );
+                                final mins = g.duration.inMinutes;
+                                final label = mins > 0
+                                    ? '${mins}m gap · ${(dist / 1000).toStringAsFixed(1)}km'
+                                    : '${(dist / 1000).toStringAsFixed(1)}km gap';
+                                return Marker(
+                                  point: LatLng(midLat, midLng),
+                                  width: 140,
+                                  height: 28,
+                                  child: Center(
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
                                       ),
-                                    ],
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.65,
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(
+                                            Icons.swap_horiz,
+                                            size: 14,
+                                            color: Colors.white70,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            label,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ),
-                            );
-                          }),
+                                );
+                              }),
                         ],
                       ),
                     ],
@@ -1049,7 +1088,9 @@ class _TileClient extends http.BaseClient {
       if (response.statusCode >= 400) onFailure();
       return response;
     } catch (_) {
-      final fallback = await TileCacheManager.instance.getCachedTile(request.url);
+      final fallback = await TileCacheManager.instance.getCachedTile(
+        request.url,
+      );
       if (fallback != null) {
         return http.StreamedResponse(
           Stream.value(fallback),

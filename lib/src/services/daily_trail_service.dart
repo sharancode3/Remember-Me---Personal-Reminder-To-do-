@@ -150,13 +150,15 @@ ParsedTrailPayload parseAndProcessTrail(String jsonString) {
     final to = parsedFixes
         .where((f) => f.time.isAfter(gap.end) || f.time == gap.end)
         .firstOrNull;
-    linkedGaps.add(TrailGap(
-      start: gap.start,
-      end: gap.end,
-      reason: gap.reason,
-      fromPoint: from?.point,
-      toPoint: to?.point,
-    ));
+    linkedGaps.add(
+      TrailGap(
+        start: gap.start,
+        end: gap.end,
+        reason: gap.reason,
+        fromPoint: from?.point,
+        toPoint: to?.point,
+      ),
+    );
   }
 
   return ParsedTrailPayload(fixes: parsedFixes, gaps: linkedGaps);

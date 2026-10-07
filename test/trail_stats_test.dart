@@ -12,7 +12,10 @@ void main() {
   );
 
   test('Empty and single-point trails have finite zero statistics', () {
-    for (final points in <List<TrailFix>>[[], [fix(12, 0)]]) {
+    for (final points in <List<TrailFix>>[
+      [],
+      [fix(12, 0)],
+    ]) {
       final stats = TrailStats(points);
       expect(stats.distance, 0);
       expect(stats.averageSpeed, 0);

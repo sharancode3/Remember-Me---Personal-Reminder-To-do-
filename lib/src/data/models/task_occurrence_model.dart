@@ -2,11 +2,7 @@ import 'package:isar/isar.dart';
 
 part 'task_occurrence_model.g.dart';
 
-enum OccurrenceStatus {
-  pending,
-  completed,
-  skipped,
-}
+enum OccurrenceStatus { pending, completed, skipped }
 
 @collection
 class TaskOccurrence {

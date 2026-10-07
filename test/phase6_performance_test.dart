@@ -20,10 +20,26 @@ void main() {
       // 5 collinear points along longitude (each ~11 meters apart)
       final points = [
         TrailFix(const LatLng(12.97160, 77.59460), now, 5.0),
-        TrailFix(const LatLng(12.97160, 77.59470), now.add(const Duration(seconds: 1)), 5.0),
-        TrailFix(const LatLng(12.97160, 77.59480), now.add(const Duration(seconds: 2)), 5.0),
-        TrailFix(const LatLng(12.97160, 77.59490), now.add(const Duration(seconds: 3)), 5.0),
-        TrailFix(const LatLng(12.97160, 77.59500), now.add(const Duration(seconds: 4)), 5.0),
+        TrailFix(
+          const LatLng(12.97160, 77.59470),
+          now.add(const Duration(seconds: 1)),
+          5.0,
+        ),
+        TrailFix(
+          const LatLng(12.97160, 77.59480),
+          now.add(const Duration(seconds: 2)),
+          5.0,
+        ),
+        TrailFix(
+          const LatLng(12.97160, 77.59490),
+          now.add(const Duration(seconds: 3)),
+          5.0,
+        ),
+        TrailFix(
+          const LatLng(12.97160, 77.59500),
+          now.add(const Duration(seconds: 4)),
+          5.0,
+        ),
       ];
 
       final decimated = TrailDecimator.decimate(points, epsilonMeters: 2.0);
@@ -37,8 +53,16 @@ void main() {
       // Triangle: (0,0) -> (0.001, 0.0005) [sharp turn ~55m away] -> (0, 0.001)
       final points = [
         TrailFix(const LatLng(12.97160, 77.59460), now, 5.0),
-        TrailFix(const LatLng(12.97260, 77.59510), now.add(const Duration(seconds: 10)), 5.0),
-        TrailFix(const LatLng(12.97160, 77.59560), now.add(const Duration(seconds: 20)), 5.0),
+        TrailFix(
+          const LatLng(12.97260, 77.59510),
+          now.add(const Duration(seconds: 10)),
+          5.0,
+        ),
+        TrailFix(
+          const LatLng(12.97160, 77.59560),
+          now.add(const Duration(seconds: 20)),
+          5.0,
+        ),
       ];
 
       final decimated = TrailDecimator.decimate(points, epsilonMeters: 5.0);
@@ -74,11 +98,36 @@ void main() {
       final t3 = DateTime.utc(2026, 10, 6, 8, 20, 0);
 
       final jsonPayload = jsonEncode([
-        {'lat': 12.9716, 'lng': 77.5946, 'time': t0.toIso8601String(), 'accuracy': 5.0},
-        {'lat': 12.9720, 'lng': 77.5950, 'time': t1.toIso8601String(), 'accuracy': 6.0},
-        {'type': 'gap', 'start': t1.toIso8601String(), 'end': t2.toIso8601String(), 'reason': 'tunnel'},
-        {'lat': 12.9800, 'lng': 77.6000, 'time': t2.toIso8601String(), 'accuracy': 8.0},
-        {'lat': 12.9810, 'lng': 77.6010, 'time': t3.toIso8601String(), 'accuracy': 7.0},
+        {
+          'lat': 12.9716,
+          'lng': 77.5946,
+          'time': t0.toIso8601String(),
+          'accuracy': 5.0,
+        },
+        {
+          'lat': 12.9720,
+          'lng': 77.5950,
+          'time': t1.toIso8601String(),
+          'accuracy': 6.0,
+        },
+        {
+          'type': 'gap',
+          'start': t1.toIso8601String(),
+          'end': t2.toIso8601String(),
+          'reason': 'tunnel',
+        },
+        {
+          'lat': 12.9800,
+          'lng': 77.6000,
+          'time': t2.toIso8601String(),
+          'accuracy': 8.0,
+        },
+        {
+          'lat': 12.9810,
+          'lng': 77.6010,
+          'time': t3.toIso8601String(),
+          'accuracy': 7.0,
+        },
       ]);
 
       final result = parseAndProcessTrail(jsonPayload);

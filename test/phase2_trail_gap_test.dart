@@ -73,10 +73,23 @@ void main() {
       final t0 = DateTime(2026, 10, 6, 10, 0, 0);
       final fixes = [
         TrailFix(const LatLng(12.0, 77.0), t0, 5.0),
-        TrailFix(const LatLng(12.001, 77.0), t0.add(const Duration(seconds: 5)), 5.0),
+        TrailFix(
+          const LatLng(12.001, 77.0),
+          t0.add(const Duration(seconds: 5)),
+          5.0,
+        ),
         // Gap here:
-        TrailFix(const LatLng(12.05, 77.0), t0.add(const Duration(minutes: 10)), 50.0, gap: true),
-        TrailFix(const LatLng(12.051, 77.0), t0.add(const Duration(minutes: 10, seconds: 5)), 20.0),
+        TrailFix(
+          const LatLng(12.05, 77.0),
+          t0.add(const Duration(minutes: 10)),
+          50.0,
+          gap: true,
+        ),
+        TrailFix(
+          const LatLng(12.051, 77.0),
+          t0.add(const Duration(minutes: 10, seconds: 5)),
+          20.0,
+        ),
       ];
 
       final segments = <List<LatLng>>[];

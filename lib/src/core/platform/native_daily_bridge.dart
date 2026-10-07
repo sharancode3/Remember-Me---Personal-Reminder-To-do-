@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 /// Type-safe platform bridge replacing raw magic strings for native Android communication.
 class NativeDailyBridge {
   NativeDailyBridge({MethodChannel? channel})
-      : _channel = channel ?? const MethodChannel('remember_me/daily');
+    : _channel = channel ?? const MethodChannel('remember_me/daily');
 
   static final NativeDailyBridge instance = NativeDailyBridge();
 
@@ -54,7 +54,9 @@ class NativeDailyBridge {
   }
 
   Future<void> acknowledgeOutboxActions(List<String> uuids) async {
-    await _channel.invokeMethod<void>('acknowledgeOutboxActions', {'uuids': uuids});
+    await _channel.invokeMethod<void>('acknowledgeOutboxActions', {
+      'uuids': uuids,
+    });
   }
 
   Future<void> testReminder() async {
@@ -98,7 +100,10 @@ class NativeDailyBridge {
   }
 
   Future<String> readTrail(String dayString) async {
-    return await _channel.invokeMethod<String>('readTrail', {'day': dayString}) ?? '[]';
+    return await _channel.invokeMethod<String>('readTrail', {
+          'day': dayString,
+        }) ??
+        '[]';
   }
 
   Future<void> deleteTrail(String dayString) async {
@@ -174,7 +179,9 @@ class NativeDailyBridge {
   }
 
   Future<Map<String, dynamic>?> consumeRepeatAction() async {
-    return await _channel.invokeMapMethod<String, dynamic>('consumeRepeatAction');
+    return await _channel.invokeMapMethod<String, dynamic>(
+      'consumeRepeatAction',
+    );
   }
 
   // --- Focus Guard ---
@@ -188,10 +195,10 @@ class NativeDailyBridge {
   }
 
   Future<List<Map<String, dynamic>>> getInstalledApps() async {
-    final list = await _channel.invokeListMethod<Map<Object?, Object?>>('installedApps');
-    return (list ?? [])
-        .map((m) => Map<String, dynamic>.from(m))
-        .toList();
+    final list = await _channel.invokeListMethod<Map<Object?, Object?>>(
+      'installedApps',
+    );
+    return (list ?? []).map((m) => Map<String, dynamic>.from(m)).toList();
   }
 
   Future<List<String>> getAllowedApps() async {
@@ -200,7 +207,9 @@ class NativeDailyBridge {
   }
 
   Future<void> saveAllowedApps(List<String> packages) async {
-    await _channel.invokeMethod<void>('saveAllowedApps', {'packages': packages});
+    await _channel.invokeMethod<void>('saveAllowedApps', {
+      'packages': packages,
+    });
   }
 
   Future<void> launchAllowedApp(String package) async {
@@ -232,8 +241,9 @@ class NativeDailyBridge {
 
   Future<int> focusMinutes({required int start, required int end}) async {
     return await _channel.invokeMethod<int>('focusMinutes', {
-      'start': start,
-      'end': end,
-    }) ?? 0;
+          'start': start,
+          'end': end,
+        }) ??
+        0;
   }
 }

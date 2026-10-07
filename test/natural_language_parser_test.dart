@@ -5,7 +5,10 @@ void main() {
   final refDate = DateTime(2026, 8, 29, 10, 0);
 
   test('Parses title with time range "Study physics 7 to 9"', () {
-    final result = NaturalLanguageTaskParser.parse('Study physics 7 to 9', referenceTime: refDate);
+    final result = NaturalLanguageTaskParser.parse(
+      'Study physics 7 to 9',
+      referenceTime: refDate,
+    );
     expect(result.title, 'Study physics');
     expect(result.startAt.hour, 7);
     expect(result.endAt.hour, 9);
@@ -13,14 +16,20 @@ void main() {
   });
 
   test('Parses tomorrow with duration "Read book tomorrow 45m"', () {
-    final result = NaturalLanguageTaskParser.parse('Read book tomorrow 45m', referenceTime: refDate);
+    final result = NaturalLanguageTaskParser.parse(
+      'Read book tomorrow 45m',
+      referenceTime: refDate,
+    );
     expect(result.title, 'Read book');
     expect(result.startAt.day, 30);
     expect(result.durationMinutes, 45);
   });
 
   test('Parses high priority and tag "Gym #fitness !high 1h at 6pm"', () {
-    final result = NaturalLanguageTaskParser.parse('Gym #fitness !high 1h at 6pm', referenceTime: refDate);
+    final result = NaturalLanguageTaskParser.parse(
+      'Gym #fitness !high 1h at 6pm',
+      referenceTime: refDate,
+    );
     expect(result.title, 'Gym');
     expect(result.tag, 'fitness');
     expect(result.priority, 2);

@@ -56,24 +56,22 @@ class AppLogger {
     StackTrace? stackTrace,
   }) {
     if (_logFile == null) return;
-    unawaited(
-      () async {
-        try {
-          final file = _logFile!;
-          var entry = '$line\n';
-          if (error != null) entry += '  Error: $error\n';
-          if (stackTrace != null) entry += '  StackTrace: $stackTrace\n';
+    unawaited(() async {
+      try {
+        final file = _logFile!;
+        var entry = '$line\n';
+        if (error != null) entry += '  Error: $error\n';
+        if (stackTrace != null) entry += '  StackTrace: $stackTrace\n';
 
-          await file.writeAsString(entry, mode: FileMode.append, flush: false);
+        await file.writeAsString(entry, mode: FileMode.append, flush: false);
 
-          if (await file.length() > maxFileSizeBytes) {
-            await _trimRingBuffer(file);
-          }
-        } catch (_) {
-          // Silent fallback in production to avoid crashing on log write failures
+        if (await file.length() > maxFileSizeBytes) {
+          await _trimRingBuffer(file);
         }
-      }(),
-    );
+      } catch (_) {
+        // Silent fallback in production to avoid crashing on log write failures
+      }
+    }());
   }
 
   static Future<void> _trimRingBuffer(File file) async {

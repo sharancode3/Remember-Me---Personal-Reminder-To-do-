@@ -19,7 +19,8 @@ import 'reliability_check_screen.dart';
 
 // Re-export UI helpers and editor for backward compatibility
 export '../../core/utils/ui_helpers.dart';
-export '../../features/tasks/presentation/task_editor_sheet.dart' show showDailyEditor;
+export '../../features/tasks/presentation/task_editor_sheet.dart'
+    show showDailyEditor;
 
 class DailyHomeScreen extends ConsumerStatefulWidget {
   const DailyHomeScreen({super.key});
@@ -125,15 +126,17 @@ class _DailyHomeScreenState extends ConsumerState<DailyHomeScreen>
                 t.startAt.isAfter(now),
           )
           .firstOrNull;
-      await ref.read(nativeDailyBridgeProvider).updateWidget(
-        jsonEncode({
-          'date': DateFormat('yyyy-MM-dd').format(now),
-          'summary': '$done of ${tasks.length} done',
-          'next': next == null
-              ? 'Your day is clear'
-              : '${next.title} - ${DateFormat.jm().format(next.startAt)}',
-        }),
-      );
+      await ref
+          .read(nativeDailyBridgeProvider)
+          .updateWidget(
+            jsonEncode({
+              'date': DateFormat('yyyy-MM-dd').format(now),
+              'summary': '$done of ${tasks.length} done',
+              'next': next == null
+                  ? 'Your day is clear'
+                  : '${next.title} - ${DateFormat.jm().format(next.startAt)}',
+            }),
+          );
     } catch (_) {
       /* The launcher widget is an Android enhancement. */
     }
@@ -156,7 +159,9 @@ class _DailyHomeScreenState extends ConsumerState<DailyHomeScreen>
   Future<void> _consumeRepeatAction() async {
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
     try {
-      final action = await ref.read(nativeDailyBridgeProvider).consumeRepeatAction();
+      final action = await ref
+          .read(nativeDailyBridgeProvider)
+          .consumeRepeatAction();
       if (action == null || action['id'] == null || !mounted) return;
       final day =
           DateTime.tryParse(action['day'] as String? ?? '') ?? DateTime.now();
@@ -415,7 +420,9 @@ class _DailyHomeScreenState extends ConsumerState<DailyHomeScreen>
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.verified_user_outlined),
               title: const Text('Reliability check & sound'),
-              subtitle: const Text('Diagnose wakeups, permissions, & alarm volume'),
+              subtitle: const Text(
+                'Diagnose wakeups, permissions, & alarm volume',
+              ),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.pop(context);

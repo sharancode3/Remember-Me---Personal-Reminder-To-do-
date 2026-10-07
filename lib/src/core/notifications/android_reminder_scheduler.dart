@@ -6,7 +6,7 @@ import 'reminder_scheduler.dart';
 
 class AndroidReminderScheduler implements ReminderScheduler {
   AndroidReminderScheduler([MethodChannel? channel])
-      : _channel = channel ?? const MethodChannel('remember_me/daily');
+    : _channel = channel ?? const MethodChannel('remember_me/daily');
 
   final MethodChannel _channel;
   static final _logger = AppLogger.create('AndroidReminderScheduler');
@@ -29,9 +29,15 @@ class AndroidReminderScheduler implements ReminderScheduler {
         'nagMinutes': nagMinutes,
         'nagMax': nagMax,
       });
-      _logger.info('Scheduled alarm for occurrence #${occurrence.id} ($title) at ${occurrence.scheduledAt}');
+      _logger.info(
+        'Scheduled alarm for occurrence #${occurrence.id} ($title) at ${occurrence.scheduledAt}',
+      );
     } catch (e, st) {
-      _logger.severe('Failed to schedule alarm for occurrence #${occurrence.id}', e, st);
+      _logger.severe(
+        'Failed to schedule alarm for occurrence #${occurrence.id}',
+        e,
+        st,
+      );
     }
   }
 
@@ -44,7 +50,11 @@ class AndroidReminderScheduler implements ReminderScheduler {
       });
       _logger.info('Cancelled alarm for occurrence #$occurrenceId');
     } catch (e, st) {
-      _logger.severe('Failed to cancel alarm for occurrence #$occurrenceId', e, st);
+      _logger.severe(
+        'Failed to cancel alarm for occurrence #$occurrenceId',
+        e,
+        st,
+      );
     }
   }
 
@@ -57,17 +67,23 @@ class AndroidReminderScheduler implements ReminderScheduler {
   }) async {
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
     try {
-      final list = desired.map((occ) => {
-        'occurrenceId': occ.id,
-        'title': titles?[occ.taskId] ?? 'Reminder',
-        'triggerAt': occ.scheduledAt.millisecondsSinceEpoch,
-        'isAlarmStyle': alarmStyles?[occ.taskId] ?? false,
-        'nagMinutes': nagMinutes?[occ.taskId] ?? 0,
-        'nagMax': (nagMinutes?[occ.taskId] ?? 0) > 0 ? 5 : 0,
-        'nagCount': 0,
-      }).toList();
+      final list = desired
+          .map(
+            (occ) => {
+              'occurrenceId': occ.id,
+              'title': titles?[occ.taskId] ?? 'Reminder',
+              'triggerAt': occ.scheduledAt.millisecondsSinceEpoch,
+              'isAlarmStyle': alarmStyles?[occ.taskId] ?? false,
+              'nagMinutes': nagMinutes?[occ.taskId] ?? 0,
+              'nagMax': (nagMinutes?[occ.taskId] ?? 0) > 0 ? 5 : 0,
+              'nagCount': 0,
+            },
+          )
+          .toList();
       await _channel.invokeMethod<void>('reconcileAlarms', {'desired': list});
-      _logger.info('Reconciled ${desired.length} occurrences with native scheduler');
+      _logger.info(
+        'Reconciled ${desired.length} occurrences with native scheduler',
+      );
     } catch (e, st) {
       _logger.severe('Failed to reconcile alarms', e, st);
     }
@@ -77,9 +93,13 @@ class AndroidReminderScheduler implements ReminderScheduler {
   Future<List<Map<String, dynamic>>> drainOutbox() async {
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return [];
     try {
-      final list = await _channel.invokeListMethod<dynamic>('drainNotificationOutbox');
+      final list = await _channel.invokeListMethod<dynamic>(
+        'drainNotificationOutbox',
+      );
       if (list == null) return [];
-      return list.map((item) => Map<String, dynamic>.from(item as Map)).toList();
+      return list
+          .map((item) => Map<String, dynamic>.from(item as Map))
+          .toList();
     } catch (e, st) {
       _logger.severe('Failed to drain notification outbox', e, st);
       return [];
@@ -88,7 +108,11 @@ class AndroidReminderScheduler implements ReminderScheduler {
 
   @override
   Future<void> acknowledgeOutbox(List<String> uuids) async {
-    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android || uuids.isEmpty) return;
+    if (kIsWeb ||
+        defaultTargetPlatform != TargetPlatform.android ||
+        uuids.isEmpty) {
+      return;
+    }
     try {
       await _channel.invokeMethod<void>('acknowledgeOutboxActions', {
         'uuids': uuids,
@@ -120,7 +144,9 @@ class AndroidReminderScheduler implements ReminderScheduler {
       };
     }
     try {
-      final result = await _channel.invokeMapMethod<String, dynamic>('getReliabilityStatus');
+      final result = await _channel.invokeMapMethod<String, dynamic>(
+        'getReliabilityStatus',
+      );
       if (result == null) {
         return {
           'notificationsGranted': false,
@@ -131,7 +157,8 @@ class AndroidReminderScheduler implements ReminderScheduler {
       return {
         'notificationsGranted': result['notificationsGranted'] == true,
         'exactAlarmsGranted': result['exactAlarmsGranted'] == true,
-        'batteryOptimizationsIgnored': result['batteryOptimizationsIgnored'] == true,
+        'batteryOptimizationsIgnored':
+            result['batteryOptimizationsIgnored'] == true,
       };
     } catch (e, st) {
       _logger.severe('Failed to get reliability status', e, st);

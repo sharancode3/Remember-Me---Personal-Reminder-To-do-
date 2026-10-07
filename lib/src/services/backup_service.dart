@@ -24,8 +24,12 @@ class BackupService {
     }
 
     final tasks = await _isarService.isar.taskModels.where().findAll();
-    final focusSessions = await _isarService.isar.focusSessionModels.where().findAll();
-    final occurrences = await _isarService.isar.taskOccurrences.where().findAll();
+    final focusSessions = await _isarService.isar.focusSessionModels
+        .where()
+        .findAll();
+    final occurrences = await _isarService.isar.taskOccurrences
+        .where()
+        .findAll();
 
     final payload = {
       'schemaVersion': 3,
@@ -35,7 +39,8 @@ class BackupService {
       'occurrences': occurrences.map(_occurrenceToJson).toList(),
     };
 
-    final path = '${backupDir.path}/remember_me_backup_${DateTime.now().millisecondsSinceEpoch}.json';
+    final path =
+        '${backupDir.path}/remember_me_backup_${DateTime.now().millisecondsSinceEpoch}.json';
     final file = File(path);
     await file.writeAsString(jsonEncode(payload));
     return path;
@@ -81,10 +86,16 @@ class BackupService {
     'status': task.status.name,
     'completionPercentage': task.completionPercentage,
     'isArchived': task.isArchived,
-    'checklist': task.checklist.map((c) => {'text': c.text, 'isChecked': c.isChecked}).toList(),
+    'checklist': task.checklist
+        .map((c) => {'text': c.text, 'isChecked': c.isChecked})
+        .toList(),
     'tag': task.tag == null
         ? null
-        : {'name': task.tag!.name, 'colorValue': task.tag!.colorValue, 'iconCodePoint': task.tag!.iconCodePoint},
+        : {
+            'name': task.tag!.name,
+            'colorValue': task.tag!.colorValue,
+            'iconCodePoint': task.tag!.iconCodePoint,
+          },
     'createdAt': task.createdAt.toIso8601String(),
     'updatedAt': task.updatedAt.toIso8601String(),
   };
@@ -95,8 +106,11 @@ class BackupService {
       ..templateId = json['templateId'] as int?
       ..title = json['title'] as String? ?? ''
       ..description = json['description'] as String? ?? ''
-      ..startAt = DateTime.tryParse(json['startAt'] as String? ?? '') ?? DateTime.now()
-      ..endAt = DateTime.tryParse(json['endAt'] as String? ?? '') ?? DateTime.now().add(const Duration(hours: 1))
+      ..startAt =
+          DateTime.tryParse(json['startAt'] as String? ?? '') ?? DateTime.now()
+      ..endAt =
+          DateTime.tryParse(json['endAt'] as String? ?? '') ??
+          DateTime.now().add(const Duration(hours: 1))
       ..priority = json['priority'] as int? ?? 1
       ..recurrenceRule = json['recurrenceRule'] as String? ?? 'none'
       ..reminderOffsetMinutes = json['reminderOffsetMinutes'] as int? ?? 10
@@ -106,8 +120,12 @@ class BackupService {
       )
       ..completionPercentage = json['completionPercentage'] as int? ?? 0
       ..isArchived = json['isArchived'] as bool? ?? false
-      ..createdAt = DateTime.tryParse(json['createdAt'] as String? ?? '') ?? DateTime.now()
-      ..updatedAt = DateTime.tryParse(json['updatedAt'] as String? ?? '') ?? DateTime.now();
+      ..createdAt =
+          DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+          DateTime.now()
+      ..updatedAt =
+          DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
+          DateTime.now();
 
     final checklistJson = json['checklist'] as List<dynamic>? ?? [];
     task.checklist = checklistJson.map((c) {
@@ -137,12 +155,17 @@ class BackupService {
     'uninterruptedMinutes': session.uninterruptedMinutes,
   };
 
-  FocusSessionModel _focusSessionFromJson(Map<String, dynamic> json) => FocusSessionModel()
-    ..id = json['id'] as int? ?? Isar.autoIncrement
-    ..startedAt = DateTime.tryParse(json['startedAt'] as String? ?? '') ?? DateTime.now()
-    ..endedAt = json['endedAt'] != null ? DateTime.tryParse(json['endedAt'] as String) : null
-    ..deepFocus = json['deepFocus'] as bool? ?? false
-    ..uninterruptedMinutes = json['uninterruptedMinutes'] as int? ?? 0;
+  FocusSessionModel _focusSessionFromJson(Map<String, dynamic> json) =>
+      FocusSessionModel()
+        ..id = json['id'] as int? ?? Isar.autoIncrement
+        ..startedAt =
+            DateTime.tryParse(json['startedAt'] as String? ?? '') ??
+            DateTime.now()
+        ..endedAt = json['endedAt'] != null
+            ? DateTime.tryParse(json['endedAt'] as String)
+            : null
+        ..deepFocus = json['deepFocus'] as bool? ?? false
+        ..uninterruptedMinutes = json['uninterruptedMinutes'] as int? ?? 0;
 
   Map<String, dynamic> _occurrenceToJson(TaskOccurrence occurrence) => {
     'id': occurrence.id,
@@ -156,17 +179,22 @@ class BackupService {
     'updatedAt': occurrence.updatedAt.toIso8601String(),
   };
 
-  TaskOccurrence _occurrenceFromJson(Map<String, dynamic> json) => TaskOccurrence()
-    ..id = json['id'] as int? ?? Isar.autoIncrement
-    ..taskId = json['taskId'] as int? ?? 0
-    ..occurrenceDate = json['occurrenceDate'] as String? ?? ''
-    ..scheduledAt = DateTime.tryParse(json['scheduledAt'] as String? ?? '') ?? DateTime.now()
-    ..status = OccurrenceStatus.values.firstWhere(
-      (s) => s.name == json['status'],
-      orElse: () => OccurrenceStatus.pending,
-    )
-    ..noteOverride = json['noteOverride'] as String?
-    ..durationMinutesOverride = json['durationMinutesOverride'] as int?
-    ..notificationId = json['notificationId'] as int? ?? 0
-    ..updatedAt = DateTime.tryParse(json['updatedAt'] as String? ?? '') ?? DateTime.now();
+  TaskOccurrence _occurrenceFromJson(Map<String, dynamic> json) =>
+      TaskOccurrence()
+        ..id = json['id'] as int? ?? Isar.autoIncrement
+        ..taskId = json['taskId'] as int? ?? 0
+        ..occurrenceDate = json['occurrenceDate'] as String? ?? ''
+        ..scheduledAt =
+            DateTime.tryParse(json['scheduledAt'] as String? ?? '') ??
+            DateTime.now()
+        ..status = OccurrenceStatus.values.firstWhere(
+          (s) => s.name == json['status'],
+          orElse: () => OccurrenceStatus.pending,
+        )
+        ..noteOverride = json['noteOverride'] as String?
+        ..durationMinutesOverride = json['durationMinutesOverride'] as int?
+        ..notificationId = json['notificationId'] as int? ?? 0
+        ..updatedAt =
+            DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
+            DateTime.now();
 }

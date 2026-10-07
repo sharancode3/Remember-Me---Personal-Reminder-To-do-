@@ -22,8 +22,7 @@ void main() {
     });
 
     test('TaskModel extracts #tag from title when placeId is not set', () {
-      final task = TaskModel()
-        ..title = 'Submit project report #office';
+      final task = TaskModel()..title = 'Submit project report #office';
 
       expect(task.resolvedPlaceTag, 'office');
     });
@@ -36,42 +35,48 @@ void main() {
       expect(task.resolvedPlaceTag, 'fitnesscenter');
     });
 
-    test('TaskModel returns null when neither placeId nor tags are present', () {
-      final task = TaskModel()
-        ..title = 'Read chapter 4 of clean architecture'
-        ..description = 'Take summary notes';
+    test(
+      'TaskModel returns null when neither placeId nor tags are present',
+      () {
+        final task = TaskModel()
+          ..title = 'Read chapter 4 of clean architecture'
+          ..description = 'Take summary notes';
 
-      expect(task.resolvedPlaceTag, isNull);
-    });
+        expect(task.resolvedPlaceTag, isNull);
+      },
+    );
 
-    test('SavedPlace encodes and decodes dwellSeconds and notify parameters', () {
-      const place = SavedPlace(
-        id: 'home_hq',
-        name: 'Home HQ',
-        point: LatLng(12.9716, 77.5946),
-        radius: 120,
-        notify: true,
-        message: 'Welcome back!',
-        dwellSeconds: 120,
-      );
+    test(
+      'SavedPlace encodes and decodes dwellSeconds and notify parameters',
+      () {
+        const place = SavedPlace(
+          id: 'home_hq',
+          name: 'Home HQ',
+          point: LatLng(12.9716, 77.5946),
+          radius: 120,
+          notify: true,
+          message: 'Welcome back!',
+          dwellSeconds: 120,
+        );
 
-      final json = place.toJson();
-      expect(json['id'], 'home_hq');
-      expect(json['name'], 'Home HQ');
-      expect(json['lat'], 12.9716);
-      expect(json['lng'], 77.5946);
-      expect(json['radius'], 120);
-      expect(json['notify'], isTrue);
-      expect(json['dwellSeconds'], 120);
+        final json = place.toJson();
+        expect(json['id'], 'home_hq');
+        expect(json['name'], 'Home HQ');
+        expect(json['lat'], 12.9716);
+        expect(json['lng'], 77.5946);
+        expect(json['radius'], 120);
+        expect(json['notify'], isTrue);
+        expect(json['dwellSeconds'], 120);
 
-      final decoded = SavedPlace.fromJson(json);
-      expect(decoded.id, place.id);
-      expect(decoded.name, place.name);
-      expect(decoded.point.latitude, place.point.latitude);
-      expect(decoded.point.longitude, place.point.longitude);
-      expect(decoded.radius, place.radius);
-      expect(decoded.notify, isTrue);
-      expect(decoded.dwellSeconds, 120);
-    });
+        final decoded = SavedPlace.fromJson(json);
+        expect(decoded.id, place.id);
+        expect(decoded.name, place.name);
+        expect(decoded.point.latitude, place.point.latitude);
+        expect(decoded.point.longitude, place.point.longitude);
+        expect(decoded.radius, place.radius);
+        expect(decoded.notify, isTrue);
+        expect(decoded.dwellSeconds, 120);
+      },
+    );
   });
 }

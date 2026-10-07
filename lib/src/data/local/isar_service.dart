@@ -20,11 +20,7 @@ class IsarService {
       directory = dir.path;
     }
     final isar = await Isar.open(
-      [
-        TaskModelSchema,
-        FocusSessionModelSchema,
-        TaskOccurrenceSchema,
-      ],
+      [TaskModelSchema, FocusSessionModelSchema, TaskOccurrenceSchema],
       directory: directory,
       name: 'remember_me_db',
     );

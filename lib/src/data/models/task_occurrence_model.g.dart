@@ -58,11 +58,7 @@ const TaskOccurrenceSchema = CollectionSchema(
       type: IsarType.byte,
       enumMap: _TaskOccurrencestatusEnumValueMap,
     ),
-    r'taskId': PropertySchema(
-      id: 8,
-      name: r'taskId',
-      type: IsarType.long,
-    ),
+    r'taskId': PropertySchema(id: 8, name: r'taskId', type: IsarType.long),
     r'titleOverride': PropertySchema(
       id: 9,
       name: r'titleOverride',
@@ -72,7 +68,7 @@ const TaskOccurrenceSchema = CollectionSchema(
       id: 10,
       name: r'updatedAt',
       type: IsarType.dateTime,
-    )
+    ),
   },
   estimateSize: _taskOccurrenceEstimateSize,
   serialize: _taskOccurrenceSerialize,
@@ -95,7 +91,7 @@ const TaskOccurrenceSchema = CollectionSchema(
           name: r'occurrenceDate',
           type: IndexType.hash,
           caseSensitive: true,
-        )
+        ),
       ],
     ),
     r'scheduledAt': IndexSchema(
@@ -108,7 +104,7 @@ const TaskOccurrenceSchema = CollectionSchema(
           name: r'scheduledAt',
           type: IndexType.value,
           caseSensitive: false,
-        )
+        ),
       ],
     ),
     r'notificationId': IndexSchema(
@@ -121,9 +117,9 @@ const TaskOccurrenceSchema = CollectionSchema(
           name: r'notificationId',
           type: IndexType.value,
           caseSensitive: false,
-        )
+        ),
       ],
-    )
+    ),
   },
   links: {},
   embeddedSchemas: {},
@@ -191,7 +187,7 @@ TaskOccurrence _taskOccurrenceDeserialize(
   object.snoozedUntil = reader.readDateTimeOrNull(offsets[6]);
   object.status =
       _TaskOccurrencestatusValueEnumMap[reader.readByteOrNull(offsets[7])] ??
-          OccurrenceStatus.pending;
+      OccurrenceStatus.pending;
   object.taskId = reader.readLong(offsets[8]);
   object.titleOverride = reader.readStringOrNull(offsets[9]);
   object.updatedAt = reader.readDateTime(offsets[10]);
@@ -220,9 +216,11 @@ P _taskOccurrenceDeserializeProp<P>(
     case 6:
       return (reader.readDateTimeOrNull(offset)) as P;
     case 7:
-      return (_TaskOccurrencestatusValueEnumMap[
-              reader.readByteOrNull(offset)] ??
-          OccurrenceStatus.pending) as P;
+      return (_TaskOccurrencestatusValueEnumMap[reader.readByteOrNull(
+                offset,
+              )] ??
+              OccurrenceStatus.pending)
+          as P;
     case 8:
       return (reader.readLong(offset)) as P;
     case 9:
@@ -254,18 +252,25 @@ List<IsarLinkBase<dynamic>> _taskOccurrenceGetLinks(TaskOccurrence object) {
 }
 
 void _taskOccurrenceAttach(
-    IsarCollection<dynamic> col, Id id, TaskOccurrence object) {
+  IsarCollection<dynamic> col,
+  Id id,
+  TaskOccurrence object,
+) {
   object.id = id;
 }
 
 extension TaskOccurrenceByIndex on IsarCollection<TaskOccurrence> {
   Future<TaskOccurrence?> getByTaskIdOccurrenceDate(
-      int taskId, String occurrenceDate) {
+    int taskId,
+    String occurrenceDate,
+  ) {
     return getByIndex(r'taskId_occurrenceDate', [taskId, occurrenceDate]);
   }
 
   TaskOccurrence? getByTaskIdOccurrenceDateSync(
-      int taskId, String occurrenceDate) {
+    int taskId,
+    String occurrenceDate,
+  ) {
     return getByIndexSync(r'taskId_occurrenceDate', [taskId, occurrenceDate]);
   }
 
@@ -274,15 +279,21 @@ extension TaskOccurrenceByIndex on IsarCollection<TaskOccurrence> {
   }
 
   bool deleteByTaskIdOccurrenceDateSync(int taskId, String occurrenceDate) {
-    return deleteByIndexSync(
-        r'taskId_occurrenceDate', [taskId, occurrenceDate]);
+    return deleteByIndexSync(r'taskId_occurrenceDate', [
+      taskId,
+      occurrenceDate,
+    ]);
   }
 
   Future<List<TaskOccurrence?>> getAllByTaskIdOccurrenceDate(
-      List<int> taskIdValues, List<String> occurrenceDateValues) {
+    List<int> taskIdValues,
+    List<String> occurrenceDateValues,
+  ) {
     final len = taskIdValues.length;
-    assert(occurrenceDateValues.length == len,
-        'All index values must have the same length');
+    assert(
+      occurrenceDateValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
       values.add([taskIdValues[i], occurrenceDateValues[i]]);
@@ -292,10 +303,14 @@ extension TaskOccurrenceByIndex on IsarCollection<TaskOccurrence> {
   }
 
   List<TaskOccurrence?> getAllByTaskIdOccurrenceDateSync(
-      List<int> taskIdValues, List<String> occurrenceDateValues) {
+    List<int> taskIdValues,
+    List<String> occurrenceDateValues,
+  ) {
     final len = taskIdValues.length;
-    assert(occurrenceDateValues.length == len,
-        'All index values must have the same length');
+    assert(
+      occurrenceDateValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
       values.add([taskIdValues[i], occurrenceDateValues[i]]);
@@ -305,10 +320,14 @@ extension TaskOccurrenceByIndex on IsarCollection<TaskOccurrence> {
   }
 
   Future<int> deleteAllByTaskIdOccurrenceDate(
-      List<int> taskIdValues, List<String> occurrenceDateValues) {
+    List<int> taskIdValues,
+    List<String> occurrenceDateValues,
+  ) {
     final len = taskIdValues.length;
-    assert(occurrenceDateValues.length == len,
-        'All index values must have the same length');
+    assert(
+      occurrenceDateValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
       values.add([taskIdValues[i], occurrenceDateValues[i]]);
@@ -318,10 +337,14 @@ extension TaskOccurrenceByIndex on IsarCollection<TaskOccurrence> {
   }
 
   int deleteAllByTaskIdOccurrenceDateSync(
-      List<int> taskIdValues, List<String> occurrenceDateValues) {
+    List<int> taskIdValues,
+    List<String> occurrenceDateValues,
+  ) {
     final len = taskIdValues.length;
-    assert(occurrenceDateValues.length == len,
-        'All index values must have the same length');
+    assert(
+      occurrenceDateValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
       values.add([taskIdValues[i], occurrenceDateValues[i]]);
@@ -334,20 +357,30 @@ extension TaskOccurrenceByIndex on IsarCollection<TaskOccurrence> {
     return putByIndex(r'taskId_occurrenceDate', object);
   }
 
-  Id putByTaskIdOccurrenceDateSync(TaskOccurrence object,
-      {bool saveLinks = true}) {
-    return putByIndexSync(r'taskId_occurrenceDate', object,
-        saveLinks: saveLinks);
+  Id putByTaskIdOccurrenceDateSync(
+    TaskOccurrence object, {
+    bool saveLinks = true,
+  }) {
+    return putByIndexSync(
+      r'taskId_occurrenceDate',
+      object,
+      saveLinks: saveLinks,
+    );
   }
 
   Future<List<Id>> putAllByTaskIdOccurrenceDate(List<TaskOccurrence> objects) {
     return putAllByIndex(r'taskId_occurrenceDate', objects);
   }
 
-  List<Id> putAllByTaskIdOccurrenceDateSync(List<TaskOccurrence> objects,
-      {bool saveLinks = true}) {
-    return putAllByIndexSync(r'taskId_occurrenceDate', objects,
-        saveLinks: saveLinks);
+  List<Id> putAllByTaskIdOccurrenceDateSync(
+    List<TaskOccurrence> objects, {
+    bool saveLinks = true,
+  }) {
+    return putAllByIndexSync(
+      r'taskId_occurrenceDate',
+      objects,
+      saveLinks: saveLinks,
+    );
   }
 }
 
@@ -368,7 +401,7 @@ extension TaskOccurrenceQueryWhereSort
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterWhere>
-      anyNotificationId() {
+  anyNotificationId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'notificationId'),
@@ -380,17 +413,16 @@ extension TaskOccurrenceQueryWhereSort
 extension TaskOccurrenceQueryWhere
     on QueryBuilder<TaskOccurrence, TaskOccurrence, QWhereClause> {
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterWhereClause> idEqualTo(
-      Id id) {
+    Id id,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: id,
-        upper: id,
-      ));
+      return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterWhereClause> idNotEqualTo(
-      Id id) {
+    Id id,
+  ) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -413,8 +445,9 @@ extension TaskOccurrenceQueryWhere
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterWhereClause> idGreaterThan(
-      Id id,
-      {bool include = false}) {
+    Id id, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.greaterThan(lower: id, includeLower: include),
@@ -423,8 +456,9 @@ extension TaskOccurrenceQueryWhere
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterWhereClause> idLessThan(
-      Id id,
-      {bool include = false}) {
+    Id id, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.lessThan(upper: id, includeUpper: include),
@@ -439,336 +473,378 @@ extension TaskOccurrenceQueryWhere
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: lowerId,
-        includeLower: includeLower,
-        upper: upperId,
-        includeUpper: includeUpper,
-      ));
+      return query.addWhereClause(
+        IdWhereClause.between(
+          lower: lowerId,
+          includeLower: includeLower,
+          upper: upperId,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterWhereClause>
-      taskIdEqualToAnyOccurrenceDate(int taskId) {
+  taskIdEqualToAnyOccurrenceDate(int taskId) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'taskId_occurrenceDate',
-        value: [taskId],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(
+          indexName: r'taskId_occurrenceDate',
+          value: [taskId],
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterWhereClause>
-      taskIdNotEqualToAnyOccurrenceDate(int taskId) {
+  taskIdNotEqualToAnyOccurrenceDate(int taskId) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'taskId_occurrenceDate',
-              lower: [],
-              upper: [taskId],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'taskId_occurrenceDate',
-              lower: [taskId],
-              includeLower: false,
-              upper: [],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'taskId_occurrenceDate',
+                lower: [],
+                upper: [taskId],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'taskId_occurrenceDate',
+                lower: [taskId],
+                includeLower: false,
+                upper: [],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'taskId_occurrenceDate',
-              lower: [taskId],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'taskId_occurrenceDate',
-              lower: [],
-              upper: [taskId],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'taskId_occurrenceDate',
+                lower: [taskId],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'taskId_occurrenceDate',
+                lower: [],
+                upper: [taskId],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterWhereClause>
-      taskIdGreaterThanAnyOccurrenceDate(
-    int taskId, {
-    bool include = false,
-  }) {
+  taskIdGreaterThanAnyOccurrenceDate(int taskId, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'taskId_occurrenceDate',
-        lower: [taskId],
-        includeLower: include,
-        upper: [],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'taskId_occurrenceDate',
+          lower: [taskId],
+          includeLower: include,
+          upper: [],
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterWhereClause>
-      taskIdLessThanAnyOccurrenceDate(
-    int taskId, {
-    bool include = false,
-  }) {
+  taskIdLessThanAnyOccurrenceDate(int taskId, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'taskId_occurrenceDate',
-        lower: [],
-        upper: [taskId],
-        includeUpper: include,
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'taskId_occurrenceDate',
+          lower: [],
+          upper: [taskId],
+          includeUpper: include,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterWhereClause>
-      taskIdBetweenAnyOccurrenceDate(
+  taskIdBetweenAnyOccurrenceDate(
     int lowerTaskId,
     int upperTaskId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'taskId_occurrenceDate',
-        lower: [lowerTaskId],
-        includeLower: includeLower,
-        upper: [upperTaskId],
-        includeUpper: includeUpper,
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'taskId_occurrenceDate',
+          lower: [lowerTaskId],
+          includeLower: includeLower,
+          upper: [upperTaskId],
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterWhereClause>
-      taskIdOccurrenceDateEqualTo(int taskId, String occurrenceDate) {
+  taskIdOccurrenceDateEqualTo(int taskId, String occurrenceDate) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'taskId_occurrenceDate',
-        value: [taskId, occurrenceDate],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(
+          indexName: r'taskId_occurrenceDate',
+          value: [taskId, occurrenceDate],
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterWhereClause>
-      taskIdEqualToOccurrenceDateNotEqualTo(int taskId, String occurrenceDate) {
+  taskIdEqualToOccurrenceDateNotEqualTo(int taskId, String occurrenceDate) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'taskId_occurrenceDate',
-              lower: [taskId],
-              upper: [taskId, occurrenceDate],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'taskId_occurrenceDate',
-              lower: [taskId, occurrenceDate],
-              includeLower: false,
-              upper: [taskId],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'taskId_occurrenceDate',
+                lower: [taskId],
+                upper: [taskId, occurrenceDate],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'taskId_occurrenceDate',
+                lower: [taskId, occurrenceDate],
+                includeLower: false,
+                upper: [taskId],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'taskId_occurrenceDate',
-              lower: [taskId, occurrenceDate],
-              includeLower: false,
-              upper: [taskId],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'taskId_occurrenceDate',
-              lower: [taskId],
-              upper: [taskId, occurrenceDate],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'taskId_occurrenceDate',
+                lower: [taskId, occurrenceDate],
+                includeLower: false,
+                upper: [taskId],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'taskId_occurrenceDate',
+                lower: [taskId],
+                upper: [taskId, occurrenceDate],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterWhereClause>
-      scheduledAtEqualTo(DateTime scheduledAt) {
+  scheduledAtEqualTo(DateTime scheduledAt) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'scheduledAt',
-        value: [scheduledAt],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(
+          indexName: r'scheduledAt',
+          value: [scheduledAt],
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterWhereClause>
-      scheduledAtNotEqualTo(DateTime scheduledAt) {
+  scheduledAtNotEqualTo(DateTime scheduledAt) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'scheduledAt',
-              lower: [],
-              upper: [scheduledAt],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'scheduledAt',
-              lower: [scheduledAt],
-              includeLower: false,
-              upper: [],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'scheduledAt',
+                lower: [],
+                upper: [scheduledAt],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'scheduledAt',
+                lower: [scheduledAt],
+                includeLower: false,
+                upper: [],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'scheduledAt',
-              lower: [scheduledAt],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'scheduledAt',
-              lower: [],
-              upper: [scheduledAt],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'scheduledAt',
+                lower: [scheduledAt],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'scheduledAt',
+                lower: [],
+                upper: [scheduledAt],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterWhereClause>
-      scheduledAtGreaterThan(
-    DateTime scheduledAt, {
-    bool include = false,
-  }) {
+  scheduledAtGreaterThan(DateTime scheduledAt, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'scheduledAt',
-        lower: [scheduledAt],
-        includeLower: include,
-        upper: [],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'scheduledAt',
+          lower: [scheduledAt],
+          includeLower: include,
+          upper: [],
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterWhereClause>
-      scheduledAtLessThan(
-    DateTime scheduledAt, {
-    bool include = false,
-  }) {
+  scheduledAtLessThan(DateTime scheduledAt, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'scheduledAt',
-        lower: [],
-        upper: [scheduledAt],
-        includeUpper: include,
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'scheduledAt',
+          lower: [],
+          upper: [scheduledAt],
+          includeUpper: include,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterWhereClause>
-      scheduledAtBetween(
+  scheduledAtBetween(
     DateTime lowerScheduledAt,
     DateTime upperScheduledAt, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'scheduledAt',
-        lower: [lowerScheduledAt],
-        includeLower: includeLower,
-        upper: [upperScheduledAt],
-        includeUpper: includeUpper,
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'scheduledAt',
+          lower: [lowerScheduledAt],
+          includeLower: includeLower,
+          upper: [upperScheduledAt],
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterWhereClause>
-      notificationIdEqualTo(int notificationId) {
+  notificationIdEqualTo(int notificationId) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'notificationId',
-        value: [notificationId],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(
+          indexName: r'notificationId',
+          value: [notificationId],
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterWhereClause>
-      notificationIdNotEqualTo(int notificationId) {
+  notificationIdNotEqualTo(int notificationId) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'notificationId',
-              lower: [],
-              upper: [notificationId],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'notificationId',
-              lower: [notificationId],
-              includeLower: false,
-              upper: [],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'notificationId',
+                lower: [],
+                upper: [notificationId],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'notificationId',
+                lower: [notificationId],
+                includeLower: false,
+                upper: [],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'notificationId',
-              lower: [notificationId],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'notificationId',
-              lower: [],
-              upper: [notificationId],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'notificationId',
+                lower: [notificationId],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'notificationId',
+                lower: [],
+                upper: [notificationId],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterWhereClause>
-      notificationIdGreaterThan(
-    int notificationId, {
-    bool include = false,
-  }) {
+  notificationIdGreaterThan(int notificationId, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'notificationId',
-        lower: [notificationId],
-        includeLower: include,
-        upper: [],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'notificationId',
+          lower: [notificationId],
+          includeLower: include,
+          upper: [],
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterWhereClause>
-      notificationIdLessThan(
-    int notificationId, {
-    bool include = false,
-  }) {
+  notificationIdLessThan(int notificationId, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'notificationId',
-        lower: [],
-        upper: [notificationId],
-        includeUpper: include,
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'notificationId',
+          lower: [],
+          upper: [notificationId],
+          includeUpper: include,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterWhereClause>
-      notificationIdBetween(
+  notificationIdBetween(
     int lowerNotificationId,
     int upperNotificationId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'notificationId',
-        lower: [lowerNotificationId],
-        includeLower: includeLower,
-        upper: [upperNotificationId],
-        includeUpper: includeUpper,
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.between(
+          indexName: r'notificationId',
+          lower: [lowerNotificationId],
+          includeLower: includeLower,
+          upper: [upperNotificationId],
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 }
@@ -776,188 +852,187 @@ extension TaskOccurrenceQueryWhere
 extension TaskOccurrenceQueryFilter
     on QueryBuilder<TaskOccurrence, TaskOccurrence, QFilterCondition> {
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      completedAtIsNull() {
+  completedAtIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'completedAt',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'completedAt'),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      completedAtIsNotNull() {
+  completedAtIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'completedAt',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'completedAt'),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      completedAtEqualTo(DateTime? value) {
+  completedAtEqualTo(DateTime? value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'completedAt',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'completedAt', value: value),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      completedAtGreaterThan(
-    DateTime? value, {
-    bool include = false,
-  }) {
+  completedAtGreaterThan(DateTime? value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'completedAt',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'completedAt',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      completedAtLessThan(
-    DateTime? value, {
-    bool include = false,
-  }) {
+  completedAtLessThan(DateTime? value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'completedAt',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'completedAt',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      completedAtBetween(
+  completedAtBetween(
     DateTime? lower,
     DateTime? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'completedAt',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'completedAt',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      durationMinutesOverrideIsNull() {
+  durationMinutesOverrideIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'durationMinutesOverride',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'durationMinutesOverride'),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      durationMinutesOverrideIsNotNull() {
+  durationMinutesOverrideIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'durationMinutesOverride',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'durationMinutesOverride'),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      durationMinutesOverrideEqualTo(int? value) {
+  durationMinutesOverrideEqualTo(int? value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'durationMinutesOverride',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'durationMinutesOverride',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      durationMinutesOverrideGreaterThan(
-    int? value, {
-    bool include = false,
-  }) {
+  durationMinutesOverrideGreaterThan(int? value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'durationMinutesOverride',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'durationMinutesOverride',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      durationMinutesOverrideLessThan(
-    int? value, {
-    bool include = false,
-  }) {
+  durationMinutesOverrideLessThan(int? value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'durationMinutesOverride',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'durationMinutesOverride',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      durationMinutesOverrideBetween(
+  durationMinutesOverrideBetween(
     int? lower,
     int? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'durationMinutesOverride',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'durationMinutesOverride',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition> idEqualTo(
-      Id value) {
+    Id value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'id', value: value),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      idGreaterThan(
-    Id value, {
-    bool include = false,
-  }) {
+  idGreaterThan(Id value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      idLessThan(
-    Id value, {
-    bool include = false,
-  }) {
+  idLessThan(Id value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
@@ -968,82 +1043,87 @@ extension TaskOccurrenceQueryFilter
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'id',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'id',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      noteOverrideIsNull() {
+  noteOverrideIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'noteOverride',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'noteOverride'),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      noteOverrideIsNotNull() {
+  noteOverrideIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'noteOverride',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'noteOverride'),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      noteOverrideEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
+  noteOverrideEqualTo(String? value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'noteOverride',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'noteOverride',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      noteOverrideGreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'noteOverride',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      noteOverrideLessThan(
+  noteOverrideGreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'noteOverride',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'noteOverride',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      noteOverrideBetween(
+  noteOverrideLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'noteOverride',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
+  noteOverrideBetween(
     String? lower,
     String? upper, {
     bool includeLower = true,
@@ -1051,191 +1131,195 @@ extension TaskOccurrenceQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'noteOverride',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'noteOverride',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      noteOverrideStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  noteOverrideStartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'noteOverride',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'noteOverride',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      noteOverrideEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  noteOverrideEndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'noteOverride',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'noteOverride',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      noteOverrideContains(String value, {bool caseSensitive = true}) {
+  noteOverrideContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'noteOverride',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'noteOverride',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      noteOverrideMatches(String pattern, {bool caseSensitive = true}) {
+  noteOverrideMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'noteOverride',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'noteOverride',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      noteOverrideIsEmpty() {
+  noteOverrideIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'noteOverride',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'noteOverride', value: ''),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      noteOverrideIsNotEmpty() {
+  noteOverrideIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'noteOverride',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'noteOverride', value: ''),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      notificationIdEqualTo(int value) {
+  notificationIdEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'notificationId',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'notificationId', value: value),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      notificationIdGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
+  notificationIdGreaterThan(int value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'notificationId',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'notificationId',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      notificationIdLessThan(
-    int value, {
-    bool include = false,
-  }) {
+  notificationIdLessThan(int value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'notificationId',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'notificationId',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      notificationIdBetween(
+  notificationIdBetween(
     int lower,
     int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'notificationId',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'notificationId',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      occurrenceDateEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  occurrenceDateEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'occurrenceDate',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'occurrenceDate',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      occurrenceDateGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'occurrenceDate',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      occurrenceDateLessThan(
+  occurrenceDateGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'occurrenceDate',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'occurrenceDate',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      occurrenceDateBetween(
+  occurrenceDateLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'occurrenceDate',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
+  occurrenceDateBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -1243,395 +1327,396 @@ extension TaskOccurrenceQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'occurrenceDate',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'occurrenceDate',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      occurrenceDateStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  occurrenceDateStartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'occurrenceDate',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'occurrenceDate',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      occurrenceDateEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  occurrenceDateEndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'occurrenceDate',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'occurrenceDate',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      occurrenceDateContains(String value, {bool caseSensitive = true}) {
+  occurrenceDateContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'occurrenceDate',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'occurrenceDate',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      occurrenceDateMatches(String pattern, {bool caseSensitive = true}) {
+  occurrenceDateMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'occurrenceDate',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'occurrenceDate',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      occurrenceDateIsEmpty() {
+  occurrenceDateIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'occurrenceDate',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'occurrenceDate', value: ''),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      occurrenceDateIsNotEmpty() {
+  occurrenceDateIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'occurrenceDate',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'occurrenceDate', value: ''),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      scheduledAtEqualTo(DateTime value) {
+  scheduledAtEqualTo(DateTime value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'scheduledAt',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'scheduledAt', value: value),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      scheduledAtGreaterThan(
-    DateTime value, {
-    bool include = false,
-  }) {
+  scheduledAtGreaterThan(DateTime value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'scheduledAt',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'scheduledAt',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      scheduledAtLessThan(
-    DateTime value, {
-    bool include = false,
-  }) {
+  scheduledAtLessThan(DateTime value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'scheduledAt',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'scheduledAt',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      scheduledAtBetween(
+  scheduledAtBetween(
     DateTime lower,
     DateTime upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'scheduledAt',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'scheduledAt',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      snoozedUntilIsNull() {
+  snoozedUntilIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'snoozedUntil',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'snoozedUntil'),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      snoozedUntilIsNotNull() {
+  snoozedUntilIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'snoozedUntil',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'snoozedUntil'),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      snoozedUntilEqualTo(DateTime? value) {
+  snoozedUntilEqualTo(DateTime? value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'snoozedUntil',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'snoozedUntil', value: value),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      snoozedUntilGreaterThan(
-    DateTime? value, {
-    bool include = false,
-  }) {
+  snoozedUntilGreaterThan(DateTime? value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'snoozedUntil',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'snoozedUntil',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      snoozedUntilLessThan(
-    DateTime? value, {
-    bool include = false,
-  }) {
+  snoozedUntilLessThan(DateTime? value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'snoozedUntil',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'snoozedUntil',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      snoozedUntilBetween(
+  snoozedUntilBetween(
     DateTime? lower,
     DateTime? upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'snoozedUntil',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'snoozedUntil',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      statusEqualTo(OccurrenceStatus value) {
+  statusEqualTo(OccurrenceStatus value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'status',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'status', value: value),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      statusGreaterThan(
-    OccurrenceStatus value, {
-    bool include = false,
-  }) {
+  statusGreaterThan(OccurrenceStatus value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'status',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'status',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      statusLessThan(
-    OccurrenceStatus value, {
-    bool include = false,
-  }) {
+  statusLessThan(OccurrenceStatus value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'status',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'status',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      statusBetween(
+  statusBetween(
     OccurrenceStatus lower,
     OccurrenceStatus upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'status',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'status',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      taskIdEqualTo(int value) {
+  taskIdEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'taskId',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'taskId', value: value),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      taskIdGreaterThan(
-    int value, {
-    bool include = false,
-  }) {
+  taskIdGreaterThan(int value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'taskId',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'taskId',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      taskIdLessThan(
-    int value, {
-    bool include = false,
-  }) {
+  taskIdLessThan(int value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'taskId',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'taskId',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      taskIdBetween(
+  taskIdBetween(
     int lower,
     int upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'taskId',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'taskId',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      titleOverrideIsNull() {
+  titleOverrideIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'titleOverride',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'titleOverride'),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      titleOverrideIsNotNull() {
+  titleOverrideIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'titleOverride',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'titleOverride'),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      titleOverrideEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
+  titleOverrideEqualTo(String? value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'titleOverride',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'titleOverride',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      titleOverrideGreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'titleOverride',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      titleOverrideLessThan(
+  titleOverrideGreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'titleOverride',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'titleOverride',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      titleOverrideBetween(
+  titleOverrideLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'titleOverride',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
+  titleOverrideBetween(
     String? lower,
     String? upper, {
     bool includeLower = true,
@@ -1639,140 +1724,141 @@ extension TaskOccurrenceQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'titleOverride',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'titleOverride',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      titleOverrideStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  titleOverrideStartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'titleOverride',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'titleOverride',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      titleOverrideEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  titleOverrideEndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'titleOverride',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'titleOverride',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      titleOverrideContains(String value, {bool caseSensitive = true}) {
+  titleOverrideContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'titleOverride',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'titleOverride',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      titleOverrideMatches(String pattern, {bool caseSensitive = true}) {
+  titleOverrideMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'titleOverride',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'titleOverride',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      titleOverrideIsEmpty() {
+  titleOverrideIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'titleOverride',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'titleOverride', value: ''),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      titleOverrideIsNotEmpty() {
+  titleOverrideIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'titleOverride',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'titleOverride', value: ''),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      updatedAtEqualTo(DateTime value) {
+  updatedAtEqualTo(DateTime value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'updatedAt',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'updatedAt', value: value),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      updatedAtGreaterThan(
-    DateTime value, {
-    bool include = false,
-  }) {
+  updatedAtGreaterThan(DateTime value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'updatedAt',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'updatedAt',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      updatedAtLessThan(
-    DateTime value, {
-    bool include = false,
-  }) {
+  updatedAtLessThan(DateTime value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'updatedAt',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'updatedAt',
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterFilterCondition>
-      updatedAtBetween(
+  updatedAtBetween(
     DateTime lower,
     DateTime upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'updatedAt',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'updatedAt',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 }
@@ -1786,98 +1872,98 @@ extension TaskOccurrenceQueryLinks
 extension TaskOccurrenceQuerySortBy
     on QueryBuilder<TaskOccurrence, TaskOccurrence, QSortBy> {
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      sortByCompletedAt() {
+  sortByCompletedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'completedAt', Sort.asc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      sortByCompletedAtDesc() {
+  sortByCompletedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'completedAt', Sort.desc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      sortByDurationMinutesOverride() {
+  sortByDurationMinutesOverride() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'durationMinutesOverride', Sort.asc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      sortByDurationMinutesOverrideDesc() {
+  sortByDurationMinutesOverrideDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'durationMinutesOverride', Sort.desc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      sortByNoteOverride() {
+  sortByNoteOverride() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'noteOverride', Sort.asc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      sortByNoteOverrideDesc() {
+  sortByNoteOverrideDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'noteOverride', Sort.desc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      sortByNotificationId() {
+  sortByNotificationId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'notificationId', Sort.asc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      sortByNotificationIdDesc() {
+  sortByNotificationIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'notificationId', Sort.desc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      sortByOccurrenceDate() {
+  sortByOccurrenceDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'occurrenceDate', Sort.asc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      sortByOccurrenceDateDesc() {
+  sortByOccurrenceDateDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'occurrenceDate', Sort.desc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      sortByScheduledAt() {
+  sortByScheduledAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'scheduledAt', Sort.asc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      sortByScheduledAtDesc() {
+  sortByScheduledAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'scheduledAt', Sort.desc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      sortBySnoozedUntil() {
+  sortBySnoozedUntil() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'snoozedUntil', Sort.asc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      sortBySnoozedUntilDesc() {
+  sortBySnoozedUntilDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'snoozedUntil', Sort.desc);
     });
@@ -1890,7 +1976,7 @@ extension TaskOccurrenceQuerySortBy
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      sortByStatusDesc() {
+  sortByStatusDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'status', Sort.desc);
     });
@@ -1903,21 +1989,21 @@ extension TaskOccurrenceQuerySortBy
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      sortByTaskIdDesc() {
+  sortByTaskIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'taskId', Sort.desc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      sortByTitleOverride() {
+  sortByTitleOverride() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'titleOverride', Sort.asc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      sortByTitleOverrideDesc() {
+  sortByTitleOverrideDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'titleOverride', Sort.desc);
     });
@@ -1930,7 +2016,7 @@ extension TaskOccurrenceQuerySortBy
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      sortByUpdatedAtDesc() {
+  sortByUpdatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.desc);
     });
@@ -1940,28 +2026,28 @@ extension TaskOccurrenceQuerySortBy
 extension TaskOccurrenceQuerySortThenBy
     on QueryBuilder<TaskOccurrence, TaskOccurrence, QSortThenBy> {
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      thenByCompletedAt() {
+  thenByCompletedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'completedAt', Sort.asc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      thenByCompletedAtDesc() {
+  thenByCompletedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'completedAt', Sort.desc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      thenByDurationMinutesOverride() {
+  thenByDurationMinutesOverride() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'durationMinutesOverride', Sort.asc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      thenByDurationMinutesOverrideDesc() {
+  thenByDurationMinutesOverrideDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'durationMinutesOverride', Sort.desc);
     });
@@ -1980,70 +2066,70 @@ extension TaskOccurrenceQuerySortThenBy
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      thenByNoteOverride() {
+  thenByNoteOverride() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'noteOverride', Sort.asc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      thenByNoteOverrideDesc() {
+  thenByNoteOverrideDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'noteOverride', Sort.desc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      thenByNotificationId() {
+  thenByNotificationId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'notificationId', Sort.asc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      thenByNotificationIdDesc() {
+  thenByNotificationIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'notificationId', Sort.desc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      thenByOccurrenceDate() {
+  thenByOccurrenceDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'occurrenceDate', Sort.asc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      thenByOccurrenceDateDesc() {
+  thenByOccurrenceDateDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'occurrenceDate', Sort.desc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      thenByScheduledAt() {
+  thenByScheduledAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'scheduledAt', Sort.asc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      thenByScheduledAtDesc() {
+  thenByScheduledAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'scheduledAt', Sort.desc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      thenBySnoozedUntil() {
+  thenBySnoozedUntil() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'snoozedUntil', Sort.asc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      thenBySnoozedUntilDesc() {
+  thenBySnoozedUntilDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'snoozedUntil', Sort.desc);
     });
@@ -2056,7 +2142,7 @@ extension TaskOccurrenceQuerySortThenBy
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      thenByStatusDesc() {
+  thenByStatusDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'status', Sort.desc);
     });
@@ -2069,21 +2155,21 @@ extension TaskOccurrenceQuerySortThenBy
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      thenByTaskIdDesc() {
+  thenByTaskIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'taskId', Sort.desc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      thenByTitleOverride() {
+  thenByTitleOverride() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'titleOverride', Sort.asc);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      thenByTitleOverrideDesc() {
+  thenByTitleOverrideDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'titleOverride', Sort.desc);
     });
@@ -2096,7 +2182,7 @@ extension TaskOccurrenceQuerySortThenBy
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QAfterSortBy>
-      thenByUpdatedAtDesc() {
+  thenByUpdatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'updatedAt', Sort.desc);
     });
@@ -2106,50 +2192,52 @@ extension TaskOccurrenceQuerySortThenBy
 extension TaskOccurrenceQueryWhereDistinct
     on QueryBuilder<TaskOccurrence, TaskOccurrence, QDistinct> {
   QueryBuilder<TaskOccurrence, TaskOccurrence, QDistinct>
-      distinctByCompletedAt() {
+  distinctByCompletedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'completedAt');
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QDistinct>
-      distinctByDurationMinutesOverride() {
+  distinctByDurationMinutesOverride() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'durationMinutesOverride');
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QDistinct>
-      distinctByNoteOverride({bool caseSensitive = true}) {
+  distinctByNoteOverride({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'noteOverride', caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QDistinct>
-      distinctByNotificationId() {
+  distinctByNotificationId() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'notificationId');
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QDistinct>
-      distinctByOccurrenceDate({bool caseSensitive = true}) {
+  distinctByOccurrenceDate({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'occurrenceDate',
-          caseSensitive: caseSensitive);
+      return query.addDistinctBy(
+        r'occurrenceDate',
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QDistinct>
-      distinctByScheduledAt() {
+  distinctByScheduledAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'scheduledAt');
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QDistinct>
-      distinctBySnoozedUntil() {
+  distinctBySnoozedUntil() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'snoozedUntil');
     });
@@ -2168,15 +2256,17 @@ extension TaskOccurrenceQueryWhereDistinct
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QDistinct>
-      distinctByTitleOverride({bool caseSensitive = true}) {
+  distinctByTitleOverride({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'titleOverride',
-          caseSensitive: caseSensitive);
+      return query.addDistinctBy(
+        r'titleOverride',
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
   QueryBuilder<TaskOccurrence, TaskOccurrence, QDistinct>
-      distinctByUpdatedAt() {
+  distinctByUpdatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'updatedAt');
     });
@@ -2192,21 +2282,21 @@ extension TaskOccurrenceQueryProperty
   }
 
   QueryBuilder<TaskOccurrence, DateTime?, QQueryOperations>
-      completedAtProperty() {
+  completedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'completedAt');
     });
   }
 
   QueryBuilder<TaskOccurrence, int?, QQueryOperations>
-      durationMinutesOverrideProperty() {
+  durationMinutesOverrideProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'durationMinutesOverride');
     });
   }
 
   QueryBuilder<TaskOccurrence, String?, QQueryOperations>
-      noteOverrideProperty() {
+  noteOverrideProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'noteOverride');
     });
@@ -2219,28 +2309,28 @@ extension TaskOccurrenceQueryProperty
   }
 
   QueryBuilder<TaskOccurrence, String, QQueryOperations>
-      occurrenceDateProperty() {
+  occurrenceDateProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'occurrenceDate');
     });
   }
 
   QueryBuilder<TaskOccurrence, DateTime, QQueryOperations>
-      scheduledAtProperty() {
+  scheduledAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'scheduledAt');
     });
   }
 
   QueryBuilder<TaskOccurrence, DateTime?, QQueryOperations>
-      snoozedUntilProperty() {
+  snoozedUntilProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'snoozedUntil');
     });
   }
 
   QueryBuilder<TaskOccurrence, OccurrenceStatus, QQueryOperations>
-      statusProperty() {
+  statusProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'status');
     });
@@ -2253,7 +2343,7 @@ extension TaskOccurrenceQueryProperty
   }
 
   QueryBuilder<TaskOccurrence, String?, QQueryOperations>
-      titleOverrideProperty() {
+  titleOverrideProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'titleOverride');
     });

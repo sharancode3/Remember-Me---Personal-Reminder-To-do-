@@ -53,7 +53,11 @@ void main() {
     allowedApps = [];
     savedPlaces = null;
     notifications = _Notifications();
-    repository = DailyRepository(null, InMemoryReminderScheduler(), notifications);
+    repository = DailyRepository(
+      null,
+      InMemoryReminderScheduler(),
+      notifications,
+    );
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(DailyTrailService.channel, (call) async {
           nativeActions.add(call.method);

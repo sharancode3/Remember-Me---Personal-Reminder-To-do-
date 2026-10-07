@@ -27,40 +27,45 @@ class _EntranceRevealState extends State<EntranceReveal>
     duration: widget.duration,
   );
 
-  late final Animation<double> _ball1Bounce = Tween<double>(begin: 0.0, end: 1.0).animate(
-    CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.0, 0.45, curve: Curves.easeOutBack),
-    ),
-  );
+  late final Animation<double> _ball1Bounce =
+      Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(
+          parent: _controller,
+          curve: const Interval(0.0, 0.45, curve: Curves.easeOutBack),
+        ),
+      );
 
-  late final Animation<double> _ball2Bounce = Tween<double>(begin: 0.0, end: 1.0).animate(
-    CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.12, 0.55, curve: Curves.easeOutBack),
-    ),
-  );
+  late final Animation<double> _ball2Bounce =
+      Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(
+          parent: _controller,
+          curve: const Interval(0.12, 0.55, curve: Curves.easeOutBack),
+        ),
+      );
 
-  late final Animation<double> _ball3Bounce = Tween<double>(begin: 0.0, end: 1.0).animate(
-    CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.24, 0.65, curve: Curves.easeOutBack),
-    ),
-  );
+  late final Animation<double> _ball3Bounce =
+      Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(
+          parent: _controller,
+          curve: const Interval(0.24, 0.65, curve: Curves.easeOutBack),
+        ),
+      );
 
-  late final Animation<double> _titleFade = Tween<double>(begin: 0.0, end: 1.0).animate(
-    CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.40, 0.75, curve: Curves.easeOut),
-    ),
-  );
+  late final Animation<double> _titleFade = Tween<double>(begin: 0.0, end: 1.0)
+      .animate(
+        CurvedAnimation(
+          parent: _controller,
+          curve: const Interval(0.40, 0.75, curve: Curves.easeOut),
+        ),
+      );
 
-  late final Animation<double> _splashExit = Tween<double>(begin: 1.0, end: 0.0).animate(
-    CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.82, 1.0, curve: Curves.easeIn),
-    ),
-  );
+  late final Animation<double> _splashExit = Tween<double>(begin: 1.0, end: 0.0)
+      .animate(
+        CurvedAnimation(
+          parent: _controller,
+          curve: const Interval(0.82, 1.0, curve: Curves.easeIn),
+        ),
+      );
 
   bool _complete = false;
 
@@ -74,11 +79,13 @@ class _EntranceRevealState extends State<EntranceReveal>
       }
 
       unawaited(HapticFeedback.lightImpact());
-      unawaited(_controller.forward().then((_) {
-        if (mounted) {
-          setState(() => _complete = true);
-        }
-      }));
+      unawaited(
+        _controller.forward().then((_) {
+          if (mounted) {
+            setState(() => _complete = true);
+          }
+        }),
+      );
     });
   }
 

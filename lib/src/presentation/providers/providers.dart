@@ -10,7 +10,9 @@ final isarServiceProvider = Provider<IsarService>((ref) {
   throw UnimplementedError('Overridden during bootstrap');
 });
 
-final localNotificationServiceProvider = Provider<LocalNotificationService>((ref) {
+final localNotificationServiceProvider = Provider<LocalNotificationService>((
+  ref,
+) {
   throw UnimplementedError('Overridden during bootstrap');
 });
 

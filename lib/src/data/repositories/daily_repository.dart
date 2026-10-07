@@ -16,11 +16,7 @@ DateTime dayOnly(DateTime day) => DateTime(day.year, day.month, day.day);
 String formatDateKey(DateTime date) =>
     '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 
-enum EditRecurrenceScope {
-  thisOccurrenceOnly,
-  thisAndFuture,
-  all,
-}
+enum EditRecurrenceScope { thisOccurrenceOnly, thisAndFuture, all }
 
 /// Production DailyRepository with materialized occurrences,
 /// durable outbox processing, and unified native scheduler integration.
@@ -67,18 +63,23 @@ class DailyRepository {
                 .isArchivedEqualTo(false)
                 .findAll();
             for (final t in oneOffs) {
-              if (ReminderRecurrence.decode(t.recurrenceRule).repeating) continue;
+              if (ReminderRecurrence.decode(t.recurrenceRule).repeating) {
+                continue;
+              }
               if (dayOnly(t.startAt) != start) continue;
               final occ = await isar.taskOccurrences
                   .filter()
                   .taskIdEqualTo(t.id)
                   .findFirst();
-              if (occ != null && occ.status == OccurrenceStatus.skipped) continue;
+              if (occ != null && occ.status == OccurrenceStatus.skipped) {
+                continue;
+              }
               if (occ != null) {
                 t.status = occ.status == OccurrenceStatus.completed
                     ? TaskStatus.completed
                     : TaskStatus.pending;
-                t.completionPercentage = occ.status == OccurrenceStatus.completed ? 100 : 0;
+                t.completionPercentage =
+                    occ.status == OccurrenceStatus.completed ? 100 : 0;
               }
               tasks.add(t);
             }
@@ -105,20 +106,27 @@ class DailyRepository {
           if (t.isArchived) continue;
           if (ReminderRecurrence.decode(t.recurrenceRule).repeating) continue;
           if (dayOnly(t.startAt) != start) continue;
-          final occ = _occurrencesMemory.where((o) => o.taskId == t.id).firstOrNull;
+          final occ = _occurrencesMemory
+              .where((o) => o.taskId == t.id)
+              .firstOrNull;
           if (occ != null && occ.status == OccurrenceStatus.skipped) continue;
           if (occ != null) {
             t.status = occ.status == OccurrenceStatus.completed
                 ? TaskStatus.completed
                 : TaskStatus.pending;
-            t.completionPercentage = occ.status == OccurrenceStatus.completed ? 100 : 0;
+            t.completionPercentage = occ.status == OccurrenceStatus.completed
+                ? 100
+                : 0;
           }
           tasks.add(t);
         }
 
         // 2. Repeating occurrences
         for (final occ in _occurrencesMemory) {
-          if (occ.occurrenceDate != dateKey || occ.status == OccurrenceStatus.skipped) continue;
+          if (occ.occurrenceDate != dateKey ||
+              occ.status == OccurrenceStatus.skipped) {
+            continue;
+          }
           final parent = _memory.where((t) => t.id == occ.taskId).firstOrNull;
           if (parent != null &&
               !parent.isArchived &&
@@ -128,6 +136,7 @@ class DailyRepository {
         }
         return _sorted(tasks);
       }
+
       yield current();
       yield* _changes.stream.map((_) => current());
     }
@@ -201,26 +210,35 @@ class DailyRepository {
   }
 
   TaskModel _buildDisplayTask(TaskModel parent, TaskOccurrence occ) {
-    final repeating = ReminderRecurrence.decode(parent.recurrenceRule).repeating;
+    final repeating = ReminderRecurrence.decode(
+      parent.recurrenceRule,
+    ).repeating;
     return TaskModel()
       ..id = occ.id
       ..templateId = parent.id
       ..title = occ.titleOverride ?? parent.title
       ..description = occ.noteOverride ?? parent.description
       ..startAt = occ.scheduledAt
-      ..endAt = occ.scheduledAt.add(Duration(minutes: occ.durationMinutesOverride ?? 1))
+      ..endAt = occ.scheduledAt.add(
+        Duration(minutes: occ.durationMinutesOverride ?? 1),
+      )
       ..reminderOffsetMinutes = parent.reminderOffsetMinutes
       ..recurrenceRule = repeating ? 'occurrence' : parent.recurrenceRule
       ..status = occ.status == OccurrenceStatus.completed
           ? TaskStatus.completed
-          : (occ.status == OccurrenceStatus.skipped ? TaskStatus.archived : TaskStatus.pending)
-      ..completionPercentage = occ.status == OccurrenceStatus.completed ? 100 : 0
+          : (occ.status == OccurrenceStatus.skipped
+                ? TaskStatus.archived
+                : TaskStatus.pending)
+      ..completionPercentage = occ.status == OccurrenceStatus.completed
+          ? 100
+          : 0
       ..isAlarmStyle = parent.isAlarmStyle
       ..nagMinutes = parent.nagMinutes
       ..placeId = parent.placeId
       ..tag = parent.tag
       ..checklist = parent.checklist
-      ..isArchived = parent.isArchived || occ.status == OccurrenceStatus.skipped;
+      ..isArchived =
+          parent.isArchived || occ.status == OccurrenceStatus.skipped;
   }
 
   List<TaskModel> _sorted(List<TaskModel> tasks) =>
@@ -326,7 +344,9 @@ class DailyRepository {
     final recurrence = ReminderRecurrence.decode(task.recurrenceRule);
     if (recurrence.repeating) {
       await _materializeRollingOccurrencesForTask(task);
-      if (task.status == TaskStatus.completed || task.isArchived || task.reminderOffsetMinutes < 0) {
+      if (task.status == TaskStatus.completed ||
+          task.isArchived ||
+          task.reminderOffsetMinutes < 0) {
         await notifications?.cancelTaskReminder(task.id);
         await notifications?.cancelRecurring(task.id);
       } else {
@@ -335,7 +355,9 @@ class DailyRepository {
       }
     } else {
       await _materializeOneOffOccurrence(task);
-      if (task.status == TaskStatus.completed || task.isArchived || task.reminderOffsetMinutes < 0) {
+      if (task.status == TaskStatus.completed ||
+          task.isArchived ||
+          task.reminderOffsetMinutes < 0) {
         await notifications?.cancelTaskReminder(task.id);
         await notifications?.cancelRecurring(task.id);
       } else {
@@ -348,7 +370,10 @@ class DailyRepository {
     await reconcile();
   }
 
-  Future<void> _saveOccurrenceEdit(TaskModel task, EditRecurrenceScope scope) async {
+  Future<void> _saveOccurrenceEdit(
+    TaskModel task,
+    EditRecurrenceScope scope,
+  ) async {
     final isar = database?.isar;
     final occId = task.id;
     final parentId = task.templateId!;
@@ -396,7 +421,9 @@ class DailyRepository {
           }
         });
       } else {
-        for (final occ in _occurrencesMemory.where((o) => o.taskId == parentId && !o.scheduledAt.isBefore(now))) {
+        for (final occ in _occurrencesMemory.where(
+          (o) => o.taskId == parentId && !o.scheduledAt.isBefore(now),
+        )) {
           occ.scheduledAt = DateTime(
             occ.scheduledAt.year,
             occ.scheduledAt.month,
@@ -462,7 +489,9 @@ class DailyRepository {
         await isar.taskOccurrences.put(occ!);
       });
     } else {
-      var occ = _occurrencesMemory.where((o) => o.taskId == task.id).firstOrNull;
+      var occ = _occurrencesMemory
+          .where((o) => o.taskId == task.id)
+          .firstOrNull;
       if (occ == null) {
         occ = TaskOccurrence()
           ..id = _nextOccurrenceId++
@@ -494,7 +523,11 @@ class DailyRepository {
     final startDay = dayOnly(task.startAt);
     final limit = startDay.add(const Duration(days: 30));
 
-    for (var d = startDay; !d.isAfter(limit); d = d.add(const Duration(days: 1))) {
+    for (
+      var d = startDay;
+      !d.isAfter(limit);
+      d = d.add(const Duration(days: 1))
+    ) {
       if (!recurrence.includes(d, task.startAt)) continue;
       final dateKey = formatDateKey(d);
       final scheduledAt = DateTime(
@@ -547,12 +580,18 @@ class DailyRepository {
     final occId = task.id;
 
     if (isar != null) {
-      final occ = await isar.taskOccurrences.get(occId) ??
-          await isar.taskOccurrences.filter().taskIdEqualTo(task.id).findFirst();
+      final occ =
+          await isar.taskOccurrences.get(occId) ??
+          await isar.taskOccurrences
+              .filter()
+              .taskIdEqualTo(task.id)
+              .findFirst();
       if (occ != null) {
         final parent = await isar.taskModels.get(occ.taskId);
         final isDone = occ.status == OccurrenceStatus.completed;
-        occ.status = isDone ? OccurrenceStatus.pending : OccurrenceStatus.completed;
+        occ.status = isDone
+            ? OccurrenceStatus.pending
+            : OccurrenceStatus.completed;
         occ.completedAt = isDone ? null : DateTime.now();
         occ.titleOverride = isDone ? null : (parent?.title ?? task.title);
         occ.updatedAt = DateTime.now();
@@ -565,10 +604,15 @@ class DailyRepository {
           await notifications?.scheduleTaskNudge(task, offsetMinutes: 0);
         }
 
-        task.status = occ.status == OccurrenceStatus.completed ? TaskStatus.completed : TaskStatus.pending;
-        task.completionPercentage = occ.status == OccurrenceStatus.completed ? 100 : 0;
+        task.status = occ.status == OccurrenceStatus.completed
+            ? TaskStatus.completed
+            : TaskStatus.pending;
+        task.completionPercentage = occ.status == OccurrenceStatus.completed
+            ? 100
+            : 0;
 
-        if (parent != null && !ReminderRecurrence.decode(parent.recurrenceRule).repeating) {
+        if (parent != null &&
+            !ReminderRecurrence.decode(parent.recurrenceRule).repeating) {
           parent.status = task.status;
           parent.completionPercentage = task.completionPercentage;
           parent.updatedAt = DateTime.now();
@@ -576,12 +620,15 @@ class DailyRepository {
         }
       }
     } else {
-      final occ = _occurrencesMemory.where((o) => o.id == occId).firstOrNull ??
+      final occ =
+          _occurrencesMemory.where((o) => o.id == occId).firstOrNull ??
           _occurrencesMemory.where((o) => o.taskId == task.id).firstOrNull;
       if (occ != null) {
         final parent = _memory.where((t) => t.id == occ.taskId).firstOrNull;
         final isDone = occ.status == OccurrenceStatus.completed;
-        occ.status = isDone ? OccurrenceStatus.pending : OccurrenceStatus.completed;
+        occ.status = isDone
+            ? OccurrenceStatus.pending
+            : OccurrenceStatus.completed;
         occ.completedAt = isDone ? null : DateTime.now();
         occ.titleOverride = isDone ? null : (parent?.title ?? task.title);
         occ.updatedAt = DateTime.now();
@@ -593,10 +640,15 @@ class DailyRepository {
           await notifications?.scheduleTaskNudge(task, offsetMinutes: 0);
         }
 
-        task.status = occ.status == OccurrenceStatus.completed ? TaskStatus.completed : TaskStatus.pending;
-        task.completionPercentage = occ.status == OccurrenceStatus.completed ? 100 : 0;
+        task.status = occ.status == OccurrenceStatus.completed
+            ? TaskStatus.completed
+            : TaskStatus.pending;
+        task.completionPercentage = occ.status == OccurrenceStatus.completed
+            ? 100
+            : 0;
 
-        if (parent != null && !ReminderRecurrence.decode(parent.recurrenceRule).repeating) {
+        if (parent != null &&
+            !ReminderRecurrence.decode(parent.recurrenceRule).repeating) {
           parent.status = task.status;
           parent.completionPercentage = task.completionPercentage;
         }
@@ -609,7 +661,8 @@ class DailyRepository {
 
   Future<void> remove(TaskModel task, {bool deleteAll = false}) async {
     final isar = database?.isar;
-    final isRepeatingOccurrence = task.templateId != null && task.templateId != task.id;
+    final isRepeatingOccurrence =
+        task.templateId != null && task.templateId != task.id;
 
     if (isRepeatingOccurrence && !deleteAll) {
       if (isar != null) {
@@ -621,7 +674,9 @@ class DailyRepository {
           await scheduler.cancelOccurrence(occ.id);
         }
       } else {
-        final occ = _occurrencesMemory.where((o) => o.id == task.id).firstOrNull;
+        final occ = _occurrencesMemory
+            .where((o) => o.id == task.id)
+            .firstOrNull;
         if (occ != null) {
           occ.status = OccurrenceStatus.skipped;
           occ.updatedAt = DateTime.now();
@@ -641,7 +696,10 @@ class DailyRepository {
           parent.updatedAt = DateTime.now();
           await isar.writeTxn(() => isar.taskModels.put(parent));
         }
-        final occs = await isar.taskOccurrences.filter().taskIdEqualTo(parentId).findAll();
+        final occs = await isar.taskOccurrences
+            .filter()
+            .taskIdEqualTo(parentId)
+            .findAll();
         await isar.writeTxn(() async {
           for (final occ in occs) {
             occ.status = OccurrenceStatus.skipped;
@@ -653,7 +711,9 @@ class DailyRepository {
       } else {
         final parent = _memory.where((t) => t.id == parentId).firstOrNull;
         if (parent != null) parent.isArchived = true;
-        for (final occ in _occurrencesMemory.where((o) => o.taskId == parentId)) {
+        for (final occ in _occurrencesMemory.where(
+          (o) => o.taskId == parentId,
+        )) {
           occ.status = OccurrenceStatus.skipped;
           occ.updatedAt = DateTime.now();
           await scheduler.cancelOccurrence(occ.id);
@@ -690,34 +750,46 @@ class DailyRepository {
               await scheduler.cancelOccurrence(occ.id);
 
               final parent = await isar.taskModels.get(occ.taskId);
-              if (parent != null && !ReminderRecurrence.decode(parent.recurrenceRule).repeating) {
+              if (parent != null &&
+                  !ReminderRecurrence.decode(parent.recurrenceRule).repeating) {
                 parent.status = TaskStatus.completed;
                 parent.completionPercentage = 100;
                 await isar.writeTxn(() => isar.taskModels.put(parent));
               }
             } else if (action.startsWith('snooze_')) {
-              final minutes = (actionMap['snoozeMinutes'] as num?)?.toInt() ?? (action == 'snooze_1h' ? 60 : 10);
+              final minutes =
+                  (actionMap['snoozeMinutes'] as num?)?.toInt() ??
+                  (action == 'snooze_1h' ? 60 : 10);
               occ.snoozedUntil = DateTime.now().add(Duration(minutes: minutes));
               occ.updatedAt = DateTime.now();
               await isar.writeTxn(() => isar.taskOccurrences.put(occ));
             }
           }
         } else {
-          final occ = _occurrencesMemory.where((o) => o.id == occurrenceId).firstOrNull ??
-              _occurrencesMemory.where((o) => o.taskId == occurrenceId).firstOrNull;
+          final occ =
+              _occurrencesMemory
+                  .where((o) => o.id == occurrenceId)
+                  .firstOrNull ??
+              _occurrencesMemory
+                  .where((o) => o.taskId == occurrenceId)
+                  .firstOrNull;
           if (occ != null) {
             if (action == 'mark_done') {
               occ.status = OccurrenceStatus.completed;
               occ.completedAt = DateTime.now();
               await scheduler.cancelOccurrence(occ.id);
 
-              final parent = _memory.where((t) => t.id == occ.taskId).firstOrNull;
-              if (parent != null && !ReminderRecurrence.decode(parent.recurrenceRule).repeating) {
+              final parent = _memory
+                  .where((t) => t.id == occ.taskId)
+                  .firstOrNull;
+              if (parent != null &&
+                  !ReminderRecurrence.decode(parent.recurrenceRule).repeating) {
                 parent.status = TaskStatus.completed;
                 parent.completionPercentage = 100;
               }
             } else if (action.startsWith('snooze_')) {
-              final minutes = (actionMap['snoozeMinutes'] as num?)?.toInt() ?? 10;
+              final minutes =
+                  (actionMap['snoozeMinutes'] as num?)?.toInt() ?? 10;
               occ.snoozedUntil = DateTime.now().add(Duration(minutes: minutes));
             }
           }
@@ -727,7 +799,9 @@ class DailyRepository {
 
       if (processedUuids.isNotEmpty) {
         await scheduler.acknowledgeOutbox(processedUuids);
-        _logger.info('Processed and acknowledged ${processedUuids.length} outbox notifications');
+        _logger.info(
+          'Processed and acknowledged ${processedUuids.length} outbox notifications',
+        );
         _changes.add(null);
       }
     } catch (e, st) {
@@ -777,7 +851,9 @@ class DailyRepository {
 
       for (final occ in pendingOccurrences) {
         final parent = await isar.taskModels.get(occ.taskId);
-        if (parent != null && !parent.isArchived && parent.reminderOffsetMinutes >= 0) {
+        if (parent != null &&
+            !parent.isArchived &&
+            parent.reminderOffsetMinutes >= 0) {
           desired.add(occ);
           titles[occ.taskId] = parent.title;
           alarmStyles[occ.taskId] = parent.isAlarmStyle;
@@ -790,7 +866,9 @@ class DailyRepository {
             occ.scheduledAt.isAfter(now) &&
             occ.scheduledAt.isBefore(windowLimit)) {
           final parent = _memory.where((t) => t.id == occ.taskId).firstOrNull;
-          if (parent != null && !parent.isArchived && parent.reminderOffsetMinutes >= 0) {
+          if (parent != null &&
+              !parent.isArchived &&
+              parent.reminderOffsetMinutes >= 0) {
             desired.add(occ);
             titles[occ.taskId] = parent.title;
             alarmStyles[occ.taskId] = parent.isAlarmStyle;
@@ -816,8 +894,15 @@ class DailyRepository {
     try {
       final isar = database?.isar;
       final pendingTasks = isar != null
-          ? await isar.taskModels.filter().statusEqualTo(TaskStatus.pending).and().isArchivedEqualTo(false).findAll()
-          : _memory.where((t) => t.status == TaskStatus.pending && !t.isArchived).toList();
+          ? await isar.taskModels
+                .filter()
+                .statusEqualTo(TaskStatus.pending)
+                .and()
+                .isArchivedEqualTo(false)
+                .findAll()
+          : _memory
+                .where((t) => t.status == TaskStatus.pending && !t.isArchived)
+                .toList();
 
       final map = <String, List<String>>{};
       for (final t in pendingTasks) {
@@ -852,7 +937,10 @@ class DailyRepository {
     final isar = database?.isar;
     if (isar != null) {
       // 1. One-offs
-      final oneOffs = await isar.taskModels.filter().isArchivedEqualTo(false).findAll();
+      final oneOffs = await isar.taskModels
+          .filter()
+          .isArchivedEqualTo(false)
+          .findAll();
       for (final t in oneOffs) {
         if (ReminderRecurrence.decode(t.recurrenceRule).repeating) continue;
         if (t.startAt.isBefore(start) || !t.startAt.isBefore(end)) continue;
@@ -872,7 +960,9 @@ class DailyRepository {
         if (occ.status == OccurrenceStatus.skipped) continue;
         final parent = await isar.taskModels.get(occ.taskId);
         if (parent == null || parent.isArchived) continue;
-        if (!ReminderRecurrence.decode(parent.recurrenceRule).repeating) continue;
+        if (!ReminderRecurrence.decode(parent.recurrenceRule).repeating) {
+          continue;
+        }
         final day = dayOnly(occ.scheduledAt);
         counts[day] = (counts[day] ?? 0) + 1;
       }
@@ -887,10 +977,14 @@ class DailyRepository {
 
       for (final occ in _occurrencesMemory) {
         if (occ.status == OccurrenceStatus.skipped) continue;
-        if (occ.scheduledAt.isBefore(start) || !occ.scheduledAt.isBefore(end)) continue;
+        if (occ.scheduledAt.isBefore(start) || !occ.scheduledAt.isBefore(end)) {
+          continue;
+        }
         final parent = _memory.where((t) => t.id == occ.taskId).firstOrNull;
         if (parent == null || parent.isArchived) continue;
-        if (!ReminderRecurrence.decode(parent.recurrenceRule).repeating) continue;
+        if (!ReminderRecurrence.decode(parent.recurrenceRule).repeating) {
+          continue;
+        }
         final day = dayOnly(occ.scheduledAt);
         counts[day] = (counts[day] ?? 0) + 1;
       }

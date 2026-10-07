@@ -108,7 +108,9 @@ class TileCacheManager {
         }
       }
       if (totalSize > maxCacheBytes) {
-        files.sort((a, b) => a.lastModifiedSync().compareTo(b.lastModifiedSync()));
+        files.sort(
+          (a, b) => a.lastModifiedSync().compareTo(b.lastModifiedSync()),
+        );
         for (final f in files) {
           totalSize -= await f.length();
           await f.delete();

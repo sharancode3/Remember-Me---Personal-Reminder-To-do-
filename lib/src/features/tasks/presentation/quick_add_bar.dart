@@ -155,7 +155,10 @@ class _QuickAddBarState extends ConsumerState<QuickAddBar> {
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : Icon(Icons.arrow_upward_rounded, color: theme.colorScheme.primary),
+                    : Icon(
+                        Icons.arrow_upward_rounded,
+                        color: theme.colorScheme.primary,
+                      ),
                 tooltip: 'Add task',
                 onPressed: _submit,
               ),
@@ -169,7 +172,10 @@ class _QuickAddBarState extends ConsumerState<QuickAddBar> {
                 runSpacing: 4,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFE8F4F0),
                       borderRadius: BorderRadius.circular(6),
@@ -177,7 +183,11 @@ class _QuickAddBarState extends ConsumerState<QuickAddBar> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.access_time, size: 12, color: Color(0xFF107C41)),
+                        const Icon(
+                          Icons.access_time,
+                          size: 12,
+                          color: Color(0xFF107C41),
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           DateFormat.jm().format(_parsed!.startAt),
@@ -191,7 +201,10 @@ class _QuickAddBarState extends ConsumerState<QuickAddBar> {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFEBF2FA),
                       borderRadius: BorderRadius.circular(6),
@@ -199,7 +212,11 @@ class _QuickAddBarState extends ConsumerState<QuickAddBar> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.calendar_today, size: 12, color: Color(0xFF3577B5)),
+                        const Icon(
+                          Icons.calendar_today,
+                          size: 12,
+                          color: Color(0xFF3577B5),
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           DateFormat.MMMd().format(_parsed!.startAt),
@@ -214,7 +231,10 @@ class _QuickAddBarState extends ConsumerState<QuickAddBar> {
                   ),
                   if (_parsed!.tag != null)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF6E8FF),
                         borderRadius: BorderRadius.circular(6),
@@ -222,7 +242,11 @@ class _QuickAddBarState extends ConsumerState<QuickAddBar> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.place, size: 12, color: Color(0xFF7B2CBF)),
+                          const Icon(
+                            Icons.place,
+                            size: 12,
+                            color: Color(0xFF7B2CBF),
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             _parsed!.tag!,

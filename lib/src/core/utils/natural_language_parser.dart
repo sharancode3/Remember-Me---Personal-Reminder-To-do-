@@ -42,9 +42,18 @@ class NaturalLanguageTaskParser {
     // 1. Priority parsing (e.g. !p1, !urgent, !p2, !p3, !low)
     // In Remember Me: Priority 2 = P1 (Critical), Priority 1 = P2 (Important), Priority 0 = P3 (Normal)
     int priority = 1;
-    final pHighRegex = RegExp(r'(!p1|!high|!urgent|!critical|p:1|p:high)\b', caseSensitive: false);
-    final pMedRegex = RegExp(r'(!p2|!med|!medium|!important|p:2|p:med)\b', caseSensitive: false);
-    final pLowRegex = RegExp(r'(!p3|!low|!normal|!optional|p:3|p:low)\b', caseSensitive: false);
+    final pHighRegex = RegExp(
+      r'(!p1|!high|!urgent|!critical|p:1|p:high)\b',
+      caseSensitive: false,
+    );
+    final pMedRegex = RegExp(
+      r'(!p2|!med|!medium|!important|p:2|p:med)\b',
+      caseSensitive: false,
+    );
+    final pLowRegex = RegExp(
+      r'(!p3|!low|!normal|!optional|p:3|p:low)\b',
+      caseSensitive: false,
+    );
 
     if (pHighRegex.hasMatch(text)) {
       priority = 2; // P1 Critical
@@ -83,13 +92,20 @@ class NaturalLanguageTaskParser {
     } else if (weekdayRegex.hasMatch(text)) {
       final match = weekdayRegex.firstMatch(text)!.group(1)!.toLowerCase();
       const dayMap = {
-        'mon': 1, 'monday': 1,
-        'tue': 2, 'tuesday': 2,
-        'wed': 3, 'wednesday': 3,
-        'thu': 4, 'thursday': 4,
-        'fri': 5, 'friday': 5,
-        'sat': 6, 'saturday': 6,
-        'sun': 7, 'sunday': 7,
+        'mon': 1,
+        'monday': 1,
+        'tue': 2,
+        'tuesday': 2,
+        'wed': 3,
+        'wednesday': 3,
+        'thu': 4,
+        'thursday': 4,
+        'fri': 5,
+        'friday': 5,
+        'sat': 6,
+        'saturday': 6,
+        'sun': 7,
+        'sunday': 7,
       };
       final targetWeekday = dayMap[match] ?? now.weekday;
       int daysAhead = targetWeekday - now.weekday;
@@ -113,11 +129,15 @@ class NaturalLanguageTaskParser {
 
     if (rangeMatch != null) {
       int h1 = int.parse(rangeMatch.group(1)!);
-      int m1 = rangeMatch.group(2) != null ? int.parse(rangeMatch.group(2)!) : 0;
+      int m1 = rangeMatch.group(2) != null
+          ? int.parse(rangeMatch.group(2)!)
+          : 0;
       String? ampm1 = rangeMatch.group(3)?.toLowerCase();
 
       int h2 = int.parse(rangeMatch.group(4)!);
-      int m2 = rangeMatch.group(5) != null ? int.parse(rangeMatch.group(5)!) : 0;
+      int m2 = rangeMatch.group(5) != null
+          ? int.parse(rangeMatch.group(5)!)
+          : 0;
       String? ampm2 = rangeMatch.group(6)?.toLowerCase();
 
       // Normalize AM/PM if only the second has it (e.g., "7 to 9pm" -> 19:00 to 21:00)
@@ -177,8 +197,14 @@ class NaturalLanguageTaskParser {
 
     // 6. Explicit Duration Parsing (e.g., "45m", "1h", "1.5h", "90 mins")
     int durationMinutes = 30;
-    final durHourRegex = RegExp(r'\b(\d+(?:\.\d+)?)\s*(?:h|hr|hours?)\b', caseSensitive: false);
-    final durMinRegex = RegExp(r'\b(\d+)\s*(?:m|min|mins|minutes?)\b', caseSensitive: false);
+    final durHourRegex = RegExp(
+      r'\b(\d+(?:\.\d+)?)\s*(?:h|hr|hours?)\b',
+      caseSensitive: false,
+    );
+    final durMinRegex = RegExp(
+      r'\b(\d+)\s*(?:m|min|mins|minutes?)\b',
+      caseSensitive: false,
+    );
 
     final hourMatch = durHourRegex.firstMatch(text);
     final minMatch = durMinRegex.firstMatch(text);
@@ -197,14 +223,32 @@ class NaturalLanguageTaskParser {
     DateTime finalEnd;
 
     if (timeRangeFound && endHour != 0) {
-      finalStart = DateTime(targetDate.year, targetDate.month, targetDate.day, startHour, startMinute);
-      finalEnd = DateTime(targetDate.year, targetDate.month, targetDate.day, endHour, endMinute);
+      finalStart = DateTime(
+        targetDate.year,
+        targetDate.month,
+        targetDate.day,
+        startHour,
+        startMinute,
+      );
+      finalEnd = DateTime(
+        targetDate.year,
+        targetDate.month,
+        targetDate.day,
+        endHour,
+        endMinute,
+      );
       if (finalEnd.isBefore(finalStart)) {
         finalEnd = finalEnd.add(const Duration(days: 1));
       }
       durationMinutes = finalEnd.difference(finalStart).inMinutes;
     } else if (timeRangeFound) {
-      finalStart = DateTime(targetDate.year, targetDate.month, targetDate.day, startHour, startMinute);
+      finalStart = DateTime(
+        targetDate.year,
+        targetDate.month,
+        targetDate.day,
+        startHour,
+        startMinute,
+      );
       finalEnd = finalStart.add(Duration(minutes: durationMinutes));
     } else {
       // Default to next nearest 15-minute slot

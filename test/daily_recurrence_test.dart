@@ -44,7 +44,11 @@ void main() {
   test(
     'Complete and skip only one occurrence, preserving future repeats',
     () async {
-      final repository = DailyRepository(null, InMemoryReminderScheduler(), _Notifications());
+      final repository = DailyRepository(
+        null,
+        InMemoryReminderScheduler(),
+        _Notifications(),
+      );
       final root = TaskModel()
         ..title = 'Walk'
         ..startAt = DateTime(2026, 10, 1, 8)
@@ -91,7 +95,11 @@ void main() {
   test(
     'Repeated item edit updates future occurrences, not completion history',
     () async {
-      final repository = DailyRepository(null, InMemoryReminderScheduler(), _Notifications());
+      final repository = DailyRepository(
+        null,
+        InMemoryReminderScheduler(),
+        _Notifications(),
+      );
       final root = TaskModel()
         ..title = 'Old'
         ..startAt = DateTime(2026, 10, 1)

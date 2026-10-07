@@ -9,10 +9,12 @@ class ReliabilityCheckScreen extends ConsumerStatefulWidget {
   const ReliabilityCheckScreen({super.key});
 
   @override
-  ConsumerState<ReliabilityCheckScreen> createState() => _ReliabilityCheckScreenState();
+  ConsumerState<ReliabilityCheckScreen> createState() =>
+      _ReliabilityCheckScreenState();
 }
 
-class _ReliabilityCheckScreenState extends ConsumerState<ReliabilityCheckScreen> with WidgetsBindingObserver {
+class _ReliabilityCheckScreenState extends ConsumerState<ReliabilityCheckScreen>
+    with WidgetsBindingObserver {
   bool _loading = true;
   bool _notificationsGranted = false;
   bool _exactAlarmsGranted = false;
@@ -47,7 +49,8 @@ class _ReliabilityCheckScreenState extends ConsumerState<ReliabilityCheckScreen>
       setState(() {
         _notificationsGranted = status['notificationsGranted'] == true;
         _exactAlarmsGranted = status['exactAlarmsGranted'] == true;
-        _batteryOptimizationsIgnored = status['batteryOptimizationsIgnored'] == true;
+        _batteryOptimizationsIgnored =
+            status['batteryOptimizationsIgnored'] == true;
         _loading = false;
       });
     }
@@ -124,7 +127,9 @@ class _ReliabilityCheckScreenState extends ConsumerState<ReliabilityCheckScreen>
                       ? 'Granted - Reminders can post heads-up alerts'
                       : 'Denied - Reminders will fail silently',
                   isOk: _notificationsGranted,
-                  actionLabel: _notificationsGranted ? 'Configure Sound' : 'Grant Permission',
+                  actionLabel: _notificationsGranted
+                      ? 'Configure Sound'
+                      : 'Grant Permission',
                   onAction: () async {
                     await scheduler.openNotificationSettings();
                   },
@@ -139,7 +144,9 @@ class _ReliabilityCheckScreenState extends ConsumerState<ReliabilityCheckScreen>
                       ? 'Allowed - Punctual to the exact second'
                       : 'Restricted - Alarms may be delayed up to 15+ minutes',
                   isOk: _exactAlarmsGranted,
-                  actionLabel: _exactAlarmsGranted ? 'Alarm Settings' : 'Allow Exact Alarms',
+                  actionLabel: _exactAlarmsGranted
+                      ? 'Alarm Settings'
+                      : 'Allow Exact Alarms',
                   onAction: () async {
                     await scheduler.openExactAlarmSettings();
                   },
@@ -154,7 +161,9 @@ class _ReliabilityCheckScreenState extends ConsumerState<ReliabilityCheckScreen>
                       ? 'Unrestricted - App survives background Doze mode'
                       : 'Optimized - OS may kill timers or suppress wakeups',
                   isOk: _batteryOptimizationsIgnored,
-                  actionLabel: _batteryOptimizationsIgnored ? 'Battery Settings' : 'Ignore Optimizations',
+                  actionLabel: _batteryOptimizationsIgnored
+                      ? 'Battery Settings'
+                      : 'Ignore Optimizations',
                   onAction: () async {
                     await scheduler.openBatteryOptSettings();
                   },
@@ -171,7 +180,10 @@ class _ReliabilityCheckScreenState extends ConsumerState<ReliabilityCheckScreen>
                       ? const SizedBox(
                           width: 18,
                           height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
                         )
                       : const Icon(Icons.timer_outlined),
                   label: const Text('Send Test Reminder (10 seconds)'),
@@ -181,8 +193,12 @@ class _ReliabilityCheckScreenState extends ConsumerState<ReliabilityCheckScreen>
                 // OEM killer guide
                 Card(
                   elevation: 0,
-                  color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  color: theme.colorScheme.surfaceContainerHighest.withValues(
+                    alpha: 0.5,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -194,14 +210,20 @@ class _ReliabilityCheckScreenState extends ConsumerState<ReliabilityCheckScreen>
                             SizedBox(width: 8),
                             Text(
                               'Device-Specific Aggressive Killing',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 8),
                         const Text(
                           'Some manufacturers (Samsung, Xiaomi, OnePlus, Vivo) forcefully kill background schedulers. Check the community guide for your phone model:',
-                          style: TextStyle(fontSize: 13, color: Color(0xFF68756E)),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Color(0xFF68756E),
+                          ),
                         ),
                         const SizedBox(height: 12),
                         OutlinedButton.icon(
@@ -252,7 +274,10 @@ class _StatusCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, color: isOk ? const Color(0xFF2E7D32) : const Color(0xFFE65100)),
+              Icon(
+                icon,
+                color: isOk ? const Color(0xFF2E7D32) : const Color(0xFFE65100),
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -260,14 +285,18 @@ class _StatusCard extends StatelessWidget {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
-                    color: isOk ? const Color(0xFF1B5E20) : const Color(0xFFBF360C),
+                    color: isOk
+                        ? const Color(0xFF1B5E20)
+                        : const Color(0xFFBF360C),
                   ),
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: isOk ? const Color(0xFF2E7D32) : const Color(0xFFE65100),
+                  color: isOk
+                      ? const Color(0xFF2E7D32)
+                      : const Color(0xFFE65100),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -292,7 +321,9 @@ class _StatusCard extends StatelessWidget {
             child: TextButton(
               onPressed: onAction,
               style: TextButton.styleFrom(
-                foregroundColor: isOk ? const Color(0xFF2E7D32) : const Color(0xFFD84315),
+                foregroundColor: isOk
+                    ? const Color(0xFF2E7D32)
+                    : const Color(0xFFD84315),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,

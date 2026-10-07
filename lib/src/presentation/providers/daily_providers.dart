@@ -7,7 +7,8 @@ import '../../data/repositories/daily_repository.dart';
 import '../../services/daily_trail_service.dart';
 import 'providers.dart';
 
-export '../../data/repositories/daily_repository.dart' show dayOnly, formatDateKey, EditRecurrenceScope;
+export '../../data/repositories/daily_repository.dart'
+    show dayOnly, formatDateKey, EditRecurrenceScope;
 
 final nativeDailyBridgeProvider = Provider<NativeDailyBridge>((ref) {
   return NativeDailyBridge.instance;
@@ -55,11 +56,7 @@ final dailyFocusMinutesProvider = FutureProvider<int>((ref) async {
     final bridge = ref.watch(nativeDailyBridgeProvider);
     final nativeMinutes = await bridge.focusMinutes(
       start: day.millisecondsSinceEpoch,
-      end: DateTime(
-        day.year,
-        day.month,
-        day.day + 1,
-      ).millisecondsSinceEpoch,
+      end: DateTime(day.year, day.month, day.day + 1).millisecondsSinceEpoch,
     );
     return nativeMinutes + await repository.focusMinutes(day);
   }

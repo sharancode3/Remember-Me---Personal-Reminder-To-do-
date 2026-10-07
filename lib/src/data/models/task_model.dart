@@ -2,13 +2,7 @@ import 'package:isar/isar.dart';
 
 part 'task_model.g.dart';
 
-enum TaskStatus {
-  pending,
-  inProgress,
-  completed,
-  missed,
-  archived,
-}
+enum TaskStatus { pending, inProgress, completed, missed, archived }
 
 @embedded
 class ChecklistItemModel {
@@ -20,7 +14,11 @@ class ChecklistItemModel {
 
 @embedded
 class TaskTagModel {
-  TaskTagModel({this.name = '', this.colorValue = 0xFF68D8CF, this.iconCodePoint = 0xe3af});
+  TaskTagModel({
+    this.name = '',
+    this.colorValue = 0xFF68D8CF,
+    this.iconCodePoint = 0xe3af,
+  });
 
   late String name;
   late int colorValue;
